@@ -1,0 +1,253 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oms-trading"
+version = "0.1.0"
+description = "Production-grade Order Management System for Interactive Brokers"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "OMS Trading Team", email = "dev@omstrading.com"},
+]
+keywords = ["trading", "oms", "interactive-brokers", "django", "finance"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 5.0",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+requires-python = ">=3.11"
+dependencies = [
+    # Core Django
+    "Django>=5.0,<5.1",
+    "django-ninja>=1.1.0",
+    "djangorestframework>=3.14.0",
+    
+    # Database & Caching
+    "psycopg[binary]>=3.1.0",
+    "redis>=5.0.0",
+    "django-redis>=5.4.0",
+    
+    # Task Queue
+    "celery[redis]>=5.3.0",
+    "flower>=2.0.0",
+    
+    # Interactive Brokers
+    "ib-insync>=0.9.86",
+    
+    # Authentication & Security
+    "PyJWT>=2.8.0",
+    "cryptography>=41.0.0",
+    "django-cors-headers>=4.3.0",
+    "django-ratelimit>=4.1.0",
+    
+    # Configuration & Environment
+    "django-environ>=0.11.0",
+    "python-decouple>=3.8",
+    
+    # API & Serialization
+    "pydantic>=2.5.0",
+    "orjson>=3.9.0",
+    
+    # Observability
+    "sentry-sdk[django]>=1.38.0",
+    "prometheus-client>=0.19.0",
+    "structlog>=23.2.0",
+    
+    # Utilities
+    "python-dateutil>=2.8.0",
+    "pytz>=2023.3",
+    "requests>=2.31.0",
+    "httpx>=0.25.0",
+    
+    # Production
+    "gunicorn>=21.2.0",
+    "whitenoise>=6.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-django>=4.7.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-mock>=3.12.0",
+    "factory-boy>=3.3.0",
+    "faker>=20.1.0",
+    
+    # Code Quality
+    "ruff>=0.1.6",
+    "black>=23.11.0",
+    "mypy>=1.7.0",
+    "django-stubs>=4.2.0",
+    "types-requests>=2.31.0",
+    "types-redis>=4.6.0",
+    
+    # Development Tools
+    "django-debug-toolbar>=4.2.0",
+    "django-extensions>=3.2.0",
+    "ipython>=8.17.0",
+    "pre-commit>=3.6.0",
+]
+
+prod = [
+    # Production monitoring
+    "ddtrace>=2.5.0",
+    "psutil>=5.9.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/omstrading/oms-trading"
+Repository = "https://github.com/omstrading/oms-trading.git"
+Documentation = "https://docs.omstrading.com"
+"Bug Tracker" = "https://github.com/omstrading/oms-trading/issues"
+
+[project.scripts]
+oms-manage = "backend.manage:main"
+
+# Package discovery configuration
+[tool.setuptools.packages.find]
+where = ["backend"]
+include = ["apps*", "libs*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt", "*.md", "*.yml", "*.yaml", "*.json"]
+
+# Ruff configuration
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "S",   # flake8-bandit
+    "T20", # flake8-print
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+]
+ignore = [
+    "S101",  # Use of assert detected (needed for tests)
+    "S104",  # Possible binding to all interfaces
+    "S308",  # Use of mark_safe detected
+    "B008",  # Do not perform function calls in argument defaults
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    "venv",
+    "migrations",
+    "static",
+    "media",
+    "node_modules",
+]
+
+[tool.ruff.per-file-ignores]
+"**/tests/**/*.py" = ["S101", "S106", "S311"]  # Allow assert, hardcoded passwords in tests
+"**/migrations/**/*.py" = ["E501"]  # Allow long lines in migrations
+"backend/apps/*/admin.py" = ["F401"]  # Allow unused imports in admin
+"backend/manage.py" = ["T20"]  # Allow prints in manage.py
+
+[tool.ruff.isort]
+known-first-party = ["backend", "apps", "libs"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    migrations
+    | static
+    | media
+    | node_modules
+)/
+'''
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+module = "apps.*.migrations.*"
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "backend.apps.core.settings.dev"
+
+# Pytest configuration
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "backend.apps.core.settings.dev"
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--cov=backend",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+    "--reuse-db",
+]
+testpaths = ["backend/tests", "backend/apps"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "slow: Tests that take more than 10 seconds",
+    "broker: Tests that require broker connection",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["backend"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/venv/*",
+    "*/env/*",
+    "manage.py",
+    "*/settings/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
