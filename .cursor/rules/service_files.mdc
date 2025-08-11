@@ -1,0 +1,4 @@
+
+description: service files orchestrate multiple usecases and repositories; they are thin, deterministic, and side-effect aware; they emit domain events via an event bus interface; build optimally always
+alwaysApply: true
+---

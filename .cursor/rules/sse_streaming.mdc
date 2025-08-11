@@ -1,0 +1,4 @@
+
+description: SSE/streaming endpoints return event stream with data shaped by ResponseSchema serialized as JSON lines; include heartbeat every 15s; codes_2xx=200, codes_4xx=429 on rate limit; build optimally always
+alwaysApply: false
+---

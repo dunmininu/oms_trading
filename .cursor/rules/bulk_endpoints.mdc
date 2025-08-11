@@ -1,0 +1,4 @@
+
+description: idempotent bulk endpoints accept array of ModelSchemas; ResponseSchema returns {accepted[], rejected[]} with per-item error codes; codes_2xx=207 Multi-Status equivalent via 200 + details
+alwaysApply: false
+---

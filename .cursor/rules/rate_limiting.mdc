@@ -1,0 +1,4 @@
+
+description: rate limiting — FilterSchema must not bypass throttles; service files return codes_4xx=429 with Retry-After; ResponseSchema may include next_allowed_at; build optimally always
+alwaysApply: false
+---

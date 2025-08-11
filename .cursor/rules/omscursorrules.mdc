@@ -1,0 +1,4 @@
+---
+description: build more optimally by using modelschemas where necessary, filterschema where necessary, schema where necessary... codes_2xx, codes_4xx, codes_5xx where necessary, response schema where necessary, repositories and usecases, service files. build optimally always
+alwaysApply: false
+---

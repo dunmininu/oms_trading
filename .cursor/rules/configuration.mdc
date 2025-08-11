@@ -1,0 +1,4 @@
+---
+description: configuration — ModelSchema for settings exposes only safe fields; secrets resolved via provider; on misconfig return codes_5xx=500 CONFIG_ERROR with masked hints; service files validate on startup
+alwaysApply: false
+---

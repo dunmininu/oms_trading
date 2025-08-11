@@ -1,0 +1,4 @@
+
+description: repositories MUST hide ORM specifics behind interfaces (e.g., OrderRepository.save(order_dto)); never return ORM instances; prefer DTOs/ModelSchemas; unit-test repositories with DB fixtures
+alwaysApply: true
+---

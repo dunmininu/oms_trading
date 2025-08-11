@@ -1,0 +1,4 @@
+
+description: implement idempotency for all order-creating POST endpoints; require Idempotency-Key header; persist request hash and ResponseSchema; return original body on replay; codes_2xx=201/200, codes_4xx=400/409 for conflicts; service file handles dedupe
+alwaysApply: true
+---

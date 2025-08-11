@@ -12,7 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d oms_trading_dev"]
       interval: 10s
@@ -63,7 +63,7 @@ services:
     networks:
       - oms_network
     healthcheck:
-      test: ["CMD", "netstat", "-an", "|", "grep", "7497"]
+      test: ["CMD-SHELL", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/7497'"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -90,6 +90,10 @@ services:
       LOAD_INITIAL_DATA: "true"
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@omstrading.com}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin123}
+      DJANGO_SUPERUSER_FIRST_NAME: ${DJANGO_SUPERUSER_FIRST_NAME:-Admin}
+      DJANGO_SUPERUSER_LAST_NAME: ${DJANGO_SUPERUSER_LAST_NAME:-User}
+      PATH: "/opt/venv/bin:$PATH"
+      VIRTUAL_ENV: "/opt/venv"
     volumes:
       - ./backend:/app/backend
       - ./logs:/app/logs
@@ -106,7 +110,7 @@ services:
     networks:
       - oms_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -117,7 +121,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: oms_celery_worker
-    command: celery -A apps.core worker --loglevel=info --concurrency=4 --max-tasks-per-child=1000
+    command: /opt/venv/bin/celery -A apps.core worker --loglevel=info --concurrency=4 --max-tasks-per-child=1000
     environment:
       DJANGO_SETTINGS_MODULE: apps.core.settings.dev
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/oms_trading_dev
@@ -131,6 +135,8 @@ services:
       IB_CLIENT_ID: 2
       IB_ACCOUNT: ${IB_ACCOUNT:-DU123456}
       C_FORCE_ROOT: "true"
+      PATH: "/opt/venv/bin:$PATH"
+      VIRTUAL_ENV: "/opt/venv"
     volumes:
       - ./backend:/app/backend
       - ./logs:/app/logs
@@ -150,7 +156,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: oms_celery_beat
-    command: celery -A apps.core beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    command: /opt/venv/bin/celery -A apps.core beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     environment:
       DJANGO_SETTINGS_MODULE: apps.core.settings.dev
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/oms_trading_dev
@@ -163,6 +169,8 @@ services:
       IB_PORT: 7497
       IB_CLIENT_ID: 3
       C_FORCE_ROOT: "true"
+      PATH: "/opt/venv/bin:$PATH"
+      VIRTUAL_ENV: "/opt/venv"
     volumes:
       - ./backend:/app/backend
       - ./logs:/app/logs
@@ -181,11 +189,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: oms_flower
-    command: celery -A apps.core flower --port=5555 --broker=redis://redis:6379/1
+    command: /opt/venv/bin/celery -A apps.core flower --port=5555 --broker=redis://redis:6379/1
     environment:
       DJANGO_SETTINGS_MODULE: apps.core.settings.dev
       CELERY_BROKER_URL: redis://redis:6379/1
       FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-flower123}
+      PATH: "/opt/venv/bin:$PATH"
+      VIRTUAL_ENV: "/opt/venv"
     ports:
       - "5555:5555"
     depends_on:

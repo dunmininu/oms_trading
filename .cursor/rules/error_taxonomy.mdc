@@ -1,0 +1,4 @@
+
+description: error taxonomy — map ValidationError→422, IdempotencyReplay→200/201 with replay flag, NotFound→404, Forbidden→403, Conflict→409, BrokerReject→424 Failed Dependency (or 400 with code), Timeout→504 if async
+alwaysApply: true
+---

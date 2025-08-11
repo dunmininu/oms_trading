@@ -1,0 +1,4 @@
+
+description: create standardized Error ResponseSchema {trace_id, code, message, details, hint}; all exceptions map through this; codes_4xx/5xx must include machine-readable code; build optimally always
+alwaysApply: true
+---

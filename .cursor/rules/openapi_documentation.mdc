@@ -1,0 +1,4 @@
+
+description: all endpoints must declare codes_2xx/4xx/5xx in OpenAPI; include concrete examples for ResponseSchema and Error ResponseSchema; build optimally always
+alwaysApply: true
+---

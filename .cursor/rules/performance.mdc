@@ -1,0 +1,4 @@
+
+description: performance — use SelectRelated/Prefetch in repositories; prohibit N+1 via linter; provide .list_light() ResponseSchema for tables; codes_2xx=200
+alwaysApply: false
+---

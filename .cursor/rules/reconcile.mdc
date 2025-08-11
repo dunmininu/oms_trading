@@ -1,0 +1,4 @@
+
+description: reconcile — service files must expose ReconcileUsecase; ResponseSchema summarizes deltas (orders, executions, positions); codes_2xx=200; build optimally always
+alwaysApply: false
+---

@@ -1,0 +1,4 @@
+
+description: for Market Data, use SubscriptionModelSchema and LastPriceResponseSchema; SSE stream accepts MarketDataFilterSchema; persistence snapshots batched; codes_2xx=200; build optimally always
+alwaysApply: false
+---

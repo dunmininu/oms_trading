@@ -1,0 +1,4 @@
+
+description: apply tenant scoping at repository layer by default; all queries require tenant_id context; FilterSchema must include tenant-aware constraints; forbid cross-tenant access; codes_4xx=403 on violations; build optimally always
+alwaysApply: true
+---

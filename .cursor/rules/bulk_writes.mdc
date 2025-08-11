@@ -1,0 +1,4 @@
+
+description: bulk writes — require transactional behavior; on partial failure, return details per item in ResponseSchema and ensure idempotent retry; codes_2xx=200 with per-item codes_4xx in details
+alwaysApply: false
+---

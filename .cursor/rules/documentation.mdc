@@ -1,0 +1,4 @@
+
+description: documentation — each endpoint must include at least one example request/ResponseSchema pair and all codes_2xx/4xx/5xx examples; generate from schemas; build optimally always
+alwaysApply: true
+---

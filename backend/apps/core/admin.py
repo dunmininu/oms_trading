@@ -64,11 +64,11 @@ class AuditLogAdmin(admin.ModelAdmin):
     """Admin configuration for AuditLog model."""
     
     list_display = [
-        'action', 'resource_type', 'resource_id', 'user', 'tenant', 
+        'action', 'resource_type', 'resource_id', 'user', 'tenant_id',
         'ip_address', 'created_at'
     ]
     list_filter = [
-        'action', 'resource_type', 'tenant', 'created_at'
+        'action', 'resource_type', 'created_at'
     ]
     search_fields = ['action', 'resource_type', 'resource_id', 'user__email']
     readonly_fields = [

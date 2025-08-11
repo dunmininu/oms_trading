@@ -1,0 +1,4 @@
+
+description: partition-aware repositories require time range in FilterSchema for heavy tables (executions, ticks, audit); reject full scans with codes_4xx=422 and guidance; build optimally always
+alwaysApply: false
+---

@@ -1,0 +1,4 @@
+
+description: for list endpoints use FilterSchema with cursor pagination (before/after, limit); never use offset for high-volume tables; repositories expose list_with_cursor(); ResponseSchema returns items[] and next/prev cursors; codes_2xx=200
+alwaysApply: true
+---

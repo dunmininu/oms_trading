@@ -1,0 +1,4 @@
+
+description: Risk checks execute as usecases before order routing; RiskLimitModelSchema defines scope/type/value/period; ResponseSchema on reject includes limit_id and remaining_headroom; codes_4xx=422 (RISK_LIMIT_BREACH) or 403 (blocked)
+alwaysApply: true
+---

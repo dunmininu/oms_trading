@@ -1,0 +1,4 @@
+
+description: webhooks security — require timestamp and idempotency nonce; reject replays older than window; codes_4xx=401/403 on signature failure; ResponseSchema includes accepted_at
+alwaysApply: false
+---

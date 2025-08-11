@@ -14,13 +14,11 @@ ALLOWED_HOSTS = ["*"]
 
 # Development-specific apps
 INSTALLED_APPS += [  # noqa: F405
-    "django_extensions",
-    "debug_toolbar",
+    # "debug_toolbar",  # Enable when installed
 ]
 
 # Development middleware
 MIDDLEWARE += [  # noqa: F405
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 # Debug toolbar configuration
@@ -47,20 +45,8 @@ DEBUG_TOOLBAR_PANELS = [
 ]
 
 # Database configuration for development
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME", default="oms_trading_dev"),  # noqa: F405
-        "USER": env("DB_USER", default="postgres"),  # noqa: F405
-        "PASSWORD": env("DB_PASSWORD", default="postgres"),  # noqa: F405
-        "HOST": env("DB_HOST", default="localhost"),  # noqa: F405
-        "PORT": env("DB_PORT", default="5432"),  # noqa: F405
-        "OPTIONS": {
-            "connect_timeout": 10,
-        },
-        "CONN_MAX_AGE": 0,  # Disable connection pooling in development
-    }
-}
+# Use DATABASE_URL from environment (set by Docker Compose)
+# DATABASES is configured in base.py from DATABASE_URL environment variable
 
 # Enable database query logging in development
 if DEBUG:
@@ -179,4 +165,4 @@ PASSWORD_HASHERS = [
 # Disable migration checks in development
 MIGRATION_MODULES = {}
 
-print("🚀 Running in DEVELOPMENT mode")  # noqa: T201
+print("Running in DEVELOPMENT mode")  # noqa: T201

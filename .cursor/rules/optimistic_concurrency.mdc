@@ -1,0 +1,4 @@
+
+description: apply optimistic concurrency via version column; require If-Match header for modifying endpoints; on mismatch return codes_4xx=409 STATE_CONFLICT with current version in ResponseSchema
+alwaysApply: true
+---

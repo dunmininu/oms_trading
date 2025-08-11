@@ -1,0 +1,4 @@
+
+description: for every API (Django Ninja), declare explicit request ModelSchema, optional FilterSchema (pagination/sorting), and ResponseSchema; never leak ORM models; include error envelope; codes_2xx=200/201/204, codes_4xx=400/401/403/404/409/422/429, codes_5xx=500/503
+alwaysApply: true
+---

@@ -1,0 +1,4 @@
+
+description: Broker status endpoints must separate liveness/readiness; ResponseSchema exposes connected, last_heartbeat_ms, submit_latency_p50/p95; codes_2xx=200, codes_5xx=503 when not ready; service files poll ibsdk
+alwaysApply: false
+---

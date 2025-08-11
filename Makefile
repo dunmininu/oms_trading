@@ -246,7 +246,7 @@ requirements: ## Generate requirements.txt from pyproject.toml
 # Health checks
 health: ## Check application health
 	@echo "$(GREEN)Checking application health...$(NC)"
-	curl -f http://localhost:8000/api/v1/health || echo "$(RED)Application is not healthy$(NC)"
+	curl -f http://localhost:8000/health || echo "$(RED)Application is not healthy$(NC)"
 
 # Performance testing
 load-test: ## Run load tests (requires locust)

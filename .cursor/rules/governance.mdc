@@ -1,0 +1,4 @@
+
+description: governance — all new endpoints require schemas (ModelSchema/FilterSchema/ResponseSchema), repositories, usecases, service files, declared codes_2xx/4xx/5xx, and tests before merge; build optimally always
+alwaysApply: true
+---

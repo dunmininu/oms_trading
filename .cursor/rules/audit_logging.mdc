@@ -1,0 +1,4 @@
+
+description: every write endpoint must produce an AuditLogEntrySchema with actor, action, resource, before/after; repositories append with hash chaining; codes_2xx include audit_id for traceability
+alwaysApply: true
+---

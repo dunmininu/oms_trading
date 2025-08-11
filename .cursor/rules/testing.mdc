@@ -1,0 +1,4 @@
+
+description: testing — every API has contract tests validating ModelSchema/ResponseSchema and codes_2xx/4xx/5xx mappings; repositories have integration tests; usecases have unit tests; build optimally always
+alwaysApply: true
+---

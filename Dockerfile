@@ -20,10 +20,11 @@ RUN apt-get update && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements and install Python dependencies
-COPY requirements/base.txt /requirements.txt
+# Copy all requirements and install Python dependencies
+COPY requirements/ /requirements/
 RUN pip install --upgrade pip setuptools wheel
-RUN pip install -r /requirements.txt
+RUN pip install -r /requirements/base.txt
+RUN pip install -r /requirements/dev.txt
 
 # Copy application code for runtime
 COPY backend/ ./backend/
@@ -36,6 +37,7 @@ FROM python:3.11-slim as runtime
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
+    VIRTUAL_ENV="/opt/venv" \
     DJANGO_SETTINGS_MODULE=apps.core.settings.prod
 
 # Install runtime system dependencies
@@ -51,6 +53,9 @@ COPY --from=builder /opt/venv /opt/venv
 
 # Create application directory
 WORKDIR /app
+
+# Ensure virtual environment is properly set up
+RUN /opt/venv/bin/python -m pip list
 
 # Copy application code and necessary files
 COPY backend/ ./backend/
@@ -72,7 +77,7 @@ USER oms
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/health/ || exit 1
+    CMD /opt/venv/bin/python -c "import requests; requests.get('http://localhost:8000/health/')" || exit 1
 
 # Expose port
 EXPOSE 8000
@@ -81,4 +86,4 @@ EXPOSE 8000
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Default command
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--worker-class", "sync", "--max-requests", "1000", "--max-requests-jitter", "100", "--timeout", "30", "--keep-alive", "5", "--chdir", "backend", "apps.core.wsgi:application"]
+CMD ["/opt/venv/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--worker-class", "sync", "--max-requests", "1000", "--max-requests-jitter", "100", "--timeout", "30", "--keep-alive", "5", "--chdir", "backend", "apps.core.wsgi:application"]

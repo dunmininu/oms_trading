@@ -1,0 +1,4 @@
+
+description: pagination defaults — limit capped (e.g., 100), stable sort keys; ResponseSchema always returns total_estimate when cheap, else omit; codes_2xx=200
+alwaysApply: false
+---

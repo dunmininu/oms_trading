@@ -1,0 +1,4 @@
+
+description: Orders API — POST uses OrderCreateModelSchema, returns OrderResponseSchema; GET uses OrderFilterSchema (state, instrument, created_at cursor); modify/cancel use ETag/If-Match with version; codes_2xx=201/200, codes_4xx=400/404/409
+alwaysApply: false
+---

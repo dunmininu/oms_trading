@@ -1,0 +1,4 @@
+
+description: deprecation — when replacing fields, expose both in ResponseSchema with deprecation metadata; include Sunset header and link; codes_2xx=200
+alwaysApply: false
+---

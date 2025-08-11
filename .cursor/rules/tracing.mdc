@@ -1,0 +1,4 @@
+---
+description: tracing — ResponseSchema must include trace_id; propagate context across services; repositories attach trace tags for critical queries; codes_5xx include trace_id for debugging
+alwaysApply: true
+---

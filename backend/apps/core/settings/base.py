@@ -8,13 +8,14 @@ For environment-specific settings, see dev.py, prod.py, and test.py.
 import os
 import sys
 from pathlib import Path
+from datetime import timedelta
 
 import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-BACKEND_DIR = BASE_DIR / "backend"
-APPS_DIR = BACKEND_DIR / "apps"
+# BACKEND_DIR = BASE_DIR / "backend"
+APPS_DIR = BASE_DIR / "apps"
 
 # Environment variables
 env = environ.Env(
@@ -30,6 +31,7 @@ env = environ.Env(
     IB_PORT=(int, 7497),
     IB_CLIENT_ID=(int, 1),
     JWT_SECRET_KEY=(str, ""),
+    JWT_REFRESH_TOKEN_SECRET_KEY=(str, ""),
     API_KEY_SECRET=(str, ""),
 )
 
@@ -71,7 +73,6 @@ LOCAL_APPS = [
     "apps.marketdata",
     "apps.oms",
     "apps.strategies",
-    "apps.events",
     "apps.api",
 ]
 
@@ -90,7 +91,9 @@ MIDDLEWARE = [
     # Custom middleware
     "apps.core.middleware.RequestIDMiddleware",
     "apps.core.middleware.AuditLogMiddleware",
-    "apps.tenants.middleware.TenantMiddleware",
+    # Note: tenants app does not provide middleware; using API TenantMiddleware
+    "apps.api.middleware.TenantMiddleware",
+    "apps.api.middleware.RateLimitMiddleware",
 ]
 
 ROOT_URLCONF = "apps.api.urls"
@@ -98,7 +101,8 @@ ROOT_URLCONF = "apps.api.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BACKEND_DIR / "templates"],
+        "DIRS": [BASE_DIR / "templates"],
+        # "DIRS": [BACKEND_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -123,7 +127,7 @@ DATABASES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom User Model
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "core.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -154,7 +158,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
-    BACKEND_DIR / "static",
+    BASE_DIR / "static",
 ]
 
 # Static files storage
@@ -347,8 +351,9 @@ LOGGING = {
 # JWT Configuration
 JWT_ALGORITHM = "HS256"
 JWT_SECRET_KEY = env("JWT_SECRET_KEY", default=SECRET_KEY)
-JWT_ACCESS_TOKEN_LIFETIME = 900  # 15 minutes
-JWT_REFRESH_TOKEN_LIFETIME = 604800  # 7 days
+JWT_REFRESH_TOKEN_SECRET_KEY = env("JWT_REFRESH_TOKEN_SECRET_KEY", default=SECRET_KEY)
+JWT_ACCESS_TOKEN_LIFETIME = timedelta(minutes=15)  # 15 minutes
+JWT_REFRESH_TOKEN_LIFETIME = timedelta(days=7)  # 7 days
 JWT_ROTATE_REFRESH_TOKENS = True
 JWT_BLACKLIST_AFTER_ROTATION = True
 

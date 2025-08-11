@@ -1,0 +1,4 @@
+
+description: security — all responses must redact secrets/PII via ResponseSchema serializers; repositories never log raw credentials; on auth failures return codes_4xx=401/403 with minimal hints
+alwaysApply: true
+---

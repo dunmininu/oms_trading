@@ -1,0 +1,4 @@
+
+description: Celery task contracts defined as TaskRequestSchema/TaskResultSchema; retries use exponential backoff with jitter; failures emit structured error events; codes_5xx map to task-level retry rationale
+alwaysApply: false
+---

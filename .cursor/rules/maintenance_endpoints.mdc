@@ -1,0 +1,4 @@
+
+description: maintenance endpoints — /health (liveness), /health/ready (readiness), /metrics (Prometheus) with ResponseSchema for JSON health; codes_2xx=200/204, codes_5xx=503 when unready
+alwaysApply: true
+---

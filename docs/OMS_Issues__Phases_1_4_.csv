@@ -1,0 +1,470 @@
+Title,Body,Labels,Milestone,Assignee
+Setup JWT auth (access/refresh),"- Implement login, refresh, logout
+- Token blacklist & refresh revoke
+- Error envelope integration
+
+**Estimate:** 1.5d","phase:P1,area:auth,type:feature,prio:p0",M1 – Foundations,
+Scoped API keys (create/rotate/expire),"- Prefix + hashed secret storage
+- Scope validation middleware
+- Last used, expire at
+
+**Estimate:** 1.5d","phase:P1,area:auth,type:feature,prio:p0",M1 – Foundations,
+MFA (TOTP) enrollment/verify/recovery,"- Pairing QR
+- Recovery codes
+- Enforcement toggles per-tenant
+
+**Estimate:** 1d","phase:P1,area:auth,type:feature,prio:p1",M1 – Foundations,
+Password policy & account lockout,"- Configurable complexity
+- N failed → lock for T
+- Admin unlock path
+
+**Estimate:** 0.75d","phase:P1,area:auth,type:feature,prio:p1",M1 – Foundations,
+Tenant resolution middleware,"- Subdomain/header → tenant context
+- Deny cross-tenant access in tests
+
+**Estimate:** 1d","phase:P1,area:tenancy,type:feature,prio:p0",M1 – Foundations,
+RBAC roles & scopes seed,"- Admin/Manager/Trader/Viewer
+- Policy evaluation helpers
+
+**Estimate:** 0.75d","phase:P1,area:auth,area:tenancy,type:feature,prio:p0",M1 – Foundations,
+Per-tenant IP allowlisting,"- Optional allowlist for users/API keys
+- Rejection with audit log
+
+**Estimate:** 0.75d","phase:P1,area:security,type:feature,prio:p2",M1 – Foundations,
+API platform & versioned router,"- /api/v1 with Ninja
+- OpenAPI generation
+- Swagger/Redoc at /api/docs
+
+**Estimate:** 1d","phase:P1,area:api,type:feature,prio:p0",M1 – Foundations,
+Idempotency middleware for POST,"- Idempotency-Key header
+- Store request hash + response
+- TTL GC job
+
+**Estimate:** 1.25d","phase:P1,area:api,area:oms,type:feature,prio:p0",M1 – Foundations,
+Rate limiting middleware,"- Per-tenant and per-API-key quotas
+- 429 with Retry-After
+
+**Estimate:** 0.75d","phase:P1,area:api,area:security,type:feature,prio:p0",M1 – Foundations,
+"Cursor pagination, filtering, sparse fieldsets","- Cursor-based pagination
+- Whitelisted filters/sorts
+- fields= support
+
+**Estimate:** 1d","phase:P1,area:api,type:feature,prio:p1",M1 – Foundations,
+Health/version endpoints,"- /health, /health/ready, /version
+
+**Estimate:** 0.25d","phase:P1,area:api,type:feature,prio:p2",M1 – Foundations,
+DB indexes & constraints hardening,"- Composite indexes per blueprint
+- NOT NULL/CHECK constraints
+
+**Estimate:** 1d","phase:P1,area:db,type:chore,prio:p1",M1 – Foundations,
+Partition time-series tables,"- executions, tick_data, audit_logs partitions
+
+**Estimate:** 1d","phase:P1,area:db,type:feature,prio:p1",M1 – Foundations,
+Optimistic concurrency on orders,"- version column + ETag/If-Match handling
+
+**Estimate:** 0.75d","phase:P1,area:oms,area:api,type:feature,prio:p1",M1 – Foundations,
+CI skeleton (lint/type/test/build + Trivy),"- GHA workflows
+- Trivy image scan gating
+
+**Estimate:** 0.75d","phase:P1,area:ci,type:chore,prio:p0",M1 – Foundations,
+M1 Acceptance tests & docs,"- Auth flows
+- Tenancy enforcement
+- Rate limit & idempotency
+- /api/docs verified
+
+**Estimate:** 1d","phase:P1,area:qa,type:test,prio:p0",M1 – Foundations,
+IB async wrapper (connect/disconnect/retry),"- ib_insync client wrapper
+- Backoff + jitter
+- Circuit breaker
+
+**Estimate:** 1.5d","phase:P1,area:broker,type:feature,prio:p0",M2 – IB Connector & Health,
+IB contract mapping utilities,"- Stocks, futures, options (basic)
+- Validation & normalization
+
+**Estimate:** 1d","phase:P1,area:broker,type:feature,prio:p1",M2 – IB Connector & Health,
+Order mapping OMS↔IB,"- TIF, outsideRTH, goodAfterTime
+- Strict validation + errors
+
+**Estimate:** 1d","phase:P1,area:broker,area:oms,type:feature,prio:p0",M2 – IB Connector & Health,
+IB event handlers,"- orderStatus, execDetails, position updates
+
+**Estimate:** 1d","phase:P1,area:broker,type:feature,prio:p0",M2 – IB Connector & Health,
+IB Gateway containers (paper/live),"- Dockerized gateways
+- Secure credential injection
+- Readiness gated on login
+
+**Estimate:** 1d","phase:P1,area:infra,area:broker,type:chore,prio:p1",M2 – IB Connector & Health,
+Broker health/status endpoint,"- /brokers/ib/status with latencies & session state
+
+**Estimate:** 0.75d","phase:P1,area:api,area:broker,type:feature,prio:p0",M2 – IB Connector & Health,
+Simulator for integration tests,"- openOrders, executionsSince, positions stubs
+
+**Estimate:** 1d","phase:P1,area:test,area:broker,type:test,prio:p1",M2 – IB Connector & Health,
+Reconciliation cursors storage,"- Last execId/time per account
+- Durable storage schema
+
+**Estimate:** 0.5d","phase:P1,area:oms,area:broker,type:feature,prio:p1",M2 – IB Connector & Health,
+Fetch & persist open orders/executions/positions,"- Initial sync & periodic reconciler hooks
+
+**Estimate:** 1d","phase:P1,area:broker,area:oms,type:feature,prio:p0",M2 – IB Connector & Health,
+Broker SLIs/metrics,"- connect_time, disconnects/hour, submit_latency, ack_latency
+
+**Estimate:** 0.5d","phase:P1,area:observability,area:broker,type:feature,prio:p1",M2 – IB Connector & Health,
+M2 Acceptance tests & drill,"- Paper connect/reconnect p95<60s
+- Sync correctness
+- Alerts on disconnect
+
+**Estimate:** 1d","phase:P1,area:qa,type:test,prio:p0",M2 – IB Connector & Health,
+Order state machine & transitions,"- States incl. PENDING_CANCEL/MODIFY
+- Guard rules + audited reasons
+
+**Estimate:** 1.5d","phase:P1,area:oms,type:feature,prio:p0",M3 – OMS Core,
+Order router service,"- Account selection rules
+- Pre-submit validation
+
+**Estimate:** 1d","phase:P1,area:oms,area:broker,type:feature,prio:p0",M3 – OMS Core,
+Execution ingestor & P&L updates,"- Persist fills
+- Realized P&L rollups
+
+**Estimate:** 1d","phase:P1,area:oms,type:feature,prio:p0",M3 – OMS Core,
+Position manager,"- Derived positions per account/instrument
+
+**Estimate:** 0.75d","phase:P1,area:oms,type:feature,prio:p1",M3 – OMS Core,
+Reconciliation worker,"- 3-way diff & OrderStateSync events
+
+**Estimate:** 1d","phase:P1,area:oms,area:broker,type:feature,prio:p1",M3 – OMS Core,
+Orders API (create/modify/cancel/batch),"- Idempotent POST
+- ETag modify
+- Batch submit/cancel
+
+**Estimate:** 1.5d","phase:P1,area:api,area:oms,type:feature,prio:p0",M3 – OMS Core,
+Executions/Orders queries & filters,"- /orders, /orders/{id}, /orders/{id}/executions
+
+**Estimate:** 0.75d","phase:P1,area:api,area:oms,type:feature,prio:p1",M3 – OMS Core,
+Idempotency store & GC,"- Canonical hashing
+- TTL cleanup task
+
+**Estimate:** 0.5d","phase:P1,area:api,area:oms,type:feature,prio:p1",M3 – OMS Core,
+Immutable audit log with hash chain,"- prev_hash linkage
+- Admin read-only views
+
+**Estimate:** 1d","phase:P1,area:security,area:ops,type:feature,prio:p1",M3 – OMS Core,
+M3 E2E flows (paper),"- Place→route→partial→modify→fill
+- Cancel paths
+- Reconnect mid-fill
+
+**Estimate:** 1.5d","phase:P1,area:qa,type:test,prio:p0",M3 – OMS Core,
+MD subscribe/unsubscribe APIs,"- /marketdata/subscribe (POST/DELETE)
+- List subscriptions
+
+**Estimate:** 1d","phase:P1,area:marketdata,area:api,type:feature,prio:p0",M4 – Market Data,
+Redis pub/sub + last-price cache,"- Per-symbol channels
+- TTL last prices
+
+**Estimate:** 1d","phase:P1,area:marketdata,area:cache,type:feature,prio:p0",M4 – Market Data,
+Tick normalization schema,"- bid/ask/last/size standardization
+
+**Estimate:** 0.5d","phase:P1,area:marketdata,type:chore,prio:p1",M4 – Market Data,
+SSE stream endpoint,"- /marketdata/stream with filters
+- Heartbeats & backpressure
+
+**Estimate:** 1d","phase:P1,area:marketdata,area:api,type:feature,prio:p0",M4 – Market Data,
+Tick snapshots & retention,"- Periodic snapshots to partitions
+- Compression & retention policies
+
+**Estimate:** 1d","phase:P1,area:marketdata,area:db,type:feature,prio:p1",M4 – Market Data,
+Trading calendars integration,"- RTH/off-hours flags per exchange
+
+**Estimate:** 0.5d","phase:P1,area:marketdata,type:feature,prio:p2",M4 – Market Data,
+MD load test & metrics,"- 10k ticks/s fan-out
+- p95 < 100ms validation
+
+**Estimate:** 1d","phase:P1,area:qa,area:observability,type:test,prio:p0",M4 – Market Data,
+Risk limits registry & schema,"- Scope: tenant/account/instrument/asset class
+- Period, value, currency
+
+**Estimate:** 1d","phase:P2,area:risk,type:feature,prio:p0",M5 – Risk & Compliance,
+Static pre-trade checks,"- Max qty/notional/leverage
+- Symbol whitelist/blacklist
+
+**Estimate:** 1.25d","phase:P2,area:risk,type:feature,prio:p0",M5 – Risk & Compliance,
+Dynamic checks & throttles,"- QPS per user/strategy
+- Open orders cap
+- Daily loss/trailing DD
+
+**Estimate:** 1.5d","phase:P2,area:risk,type:feature,prio:p0",M5 – Risk & Compliance,
+Position impact & concentration checks,"- Resulting position exposure & weight caps
+
+**Estimate:** 0.75d","phase:P2,area:risk,type:feature,prio:p1",M5 – Risk & Compliance,
+Compliance calendars & restricted lists,"- RTH checks
+- Restricted symbols/venues/accounts
+
+**Estimate:** 0.75d","phase:P2,area:compliance,type:feature,prio:p1",M5 – Risk & Compliance,
+Wash trade heuristic,"- Same-account self-cross within window
+
+**Estimate:** 0.75d","phase:P2,area:compliance,type:feature,prio:p2",M5 – Risk & Compliance,
+Kill switch + circuit breakers,"- Tenant/account/strategy
+- Reject storm/latency/loss triggers
+
+**Estimate:** 1d","phase:P2,area:risk,area:ops,type:feature,prio:p0",M5 – Risk & Compliance,
+Risk APIs (CRUD/status/override),"- /risk/limits CRUD
+- /risk/status
+- /risk/override (Admin, audited)
+
+**Estimate:** 1d","phase:P2,area:risk,area:api,type:feature,prio:p0",M5 – Risk & Compliance,
+M5 tests & dashboards,"- Block & audit on breach
+- Circuit reset
+- Kill switch cancels working orders
+
+**Estimate:** 1d","phase:P2,area:qa,area:risk,type:test,prio:p0",M5 – Risk & Compliance,
+Event schema & versioning,"- order.* , broker.*, position.updated, pnl.snapshot.created
+- trace_id, tenant_id, event_id
+
+**Estimate:** 0.75d","phase:P2,area:events,type:feature,prio:p0",M6 – Events & Webhooks,
+Outbound webhook service + HMAC,"- Endpoint CRUD
+- HMAC-SHA256 signing
+- Replay-prevention (nonce + ts)
+
+**Estimate:** 1.5d","phase:P2,area:webhooks,area:security,type:feature,prio:p0",M6 – Events & Webhooks,
+Delivery worker with retries & DLQ,"- Exponential backoff
+- Max attempts
+- DLQ admin view
+
+**Estimate:** 1d","phase:P2,area:webhooks,area:events,type:feature,prio:p0",M6 – Events & Webhooks,
+Inbound webhook receiver (stub),"- Signature validation
+- Extensible routing
+
+**Estimate:** 0.5d","phase:P2,area:webhooks,type:feature,prio:p2",M6 – Events & Webhooks,
+Webhook metrics & admin UI,"- Delivery latency, success rate, DLQ depth
+- Redeliver action
+
+**Estimate:** 0.75d","phase:P2,area:webhooks,area:observability,type:feature,prio:p1",M6 – Events & Webhooks,
+M6 tests,"- Signature happy/sad paths
+- DLQ behavior
+- Idempotent consumers (doc)
+
+**Estimate:** 0.75d","phase:P2,area:qa,area:webhooks,type:test,prio:p0",M6 – Events & Webhooks,
+Prometheus metrics & /metrics endpoint,"- Business + system + broker metrics
+
+**Estimate:** 0.75d","phase:P2,area:observability,type:feature,prio:p0",M7 – Observability & Ops,
+Structured JSON logs with trace IDs,"- Redaction filters for PII/secrets
+
+**Estimate:** 0.5d","phase:P2,area:observability,type:chore,prio:p0",M7 – Observability & Ops,
+OpenTelemetry tracing,"- API→OMS→ibsdk spans
+- Collector export
+
+**Estimate:** 1d","phase:P2,area:observability,type:feature,prio:p1",M7 – Observability & Ops,
+Sentry (errors + perf) integration,"- Env tags & release tracking
+
+**Estimate:** 0.5d","phase:P2,area:observability,type:feature,prio:p2",M7 – Observability & Ops,
+Grafana dashboards & alert policies,"- Broker health, order latency, rejects, risk breaches, queue depth
+
+**Estimate:** 1.25d","phase:P2,area:observability,area:ops,type:feature,prio:p0",M7 – Observability & Ops,
+Synthetic trade canary (paper),"- Hourly run with alert on failure
+
+**Estimate:** 0.5d","phase:P2,area:ops,type:feature,prio:p1",M7 – Observability & Ops,
+"Runbooks (IB down, reject storm, DB failover, secrets rotation)","- Step-by-step with commands & owners
+
+**Estimate:** 1d","phase:P2,area:ops,type:doc,prio:p0",M7 – Observability & Ops,
+Chaos & load tests,"- Broker disconnects, DB failover, Redis eviction, latency injection
+- Soak tests
+
+**Estimate:** 1.5d","phase:P2,area:qa,area:ops,type:test,prio:p0",M7 – Observability & Ops,
+K8s manifests & process model,"- Web, workers (orders/marketdata/strategies/webhooks/reconcile), beat, gateway
+
+**Estimate:** 1.5d","phase:P2,area:infra,area:k8s,type:feature,prio:p0",M8 – Productionization,
+"HPA, PDBs, anti-affinity","- Scale by CPU & queue depth
+- AZ spreading
+
+**Estimate:** 0.75d","phase:P2,area:k8s,type:feature,prio:p1",M8 – Productionization,
+NetworkPolicies & pod security,"- Zero-trust between pods
+- Non-root, read-only FS
+
+**Estimate:** 1d","phase:P2,area:k8s,area:security,type:feature,prio:p0",M8 – Productionization,
+Blue/Green or canary (Argo Rollouts),"- Auto-rollback on SLO breach
+
+**Estimate:** 1d","phase:P2,area:infra,area:k8s,type:feature,prio:p1",M8 – Productionization,
+Safe migrations & graceful shutdown,"- PreStop hooks
+- safe_migrate job
+
+**Estimate:** 0.75d","phase:P2,area:k8s,area:db,type:feature,prio:p1",M8 – Productionization,
+Vault/Secrets Manager integration,"- No plain secrets in env
+- Rotation jobs
+
+**Estimate:** 1d","phase:P2,area:security,area:infra,type:feature,prio:p0",M8 – Productionization,
+Supply chain hardening,"- SBOM, image signing, admission policy, Trivy/Grype gates
+
+**Estimate:** 1d","phase:P2,area:security,area:ci,type:chore,prio:p0",M8 – Productionization,
+DB & Redis HA + DR drill,"- Postgres replica + pgBouncer + PITR
+- Redis HA & eviction policy
+- DR drill report
+
+**Estimate:** 1.5d","phase:P2,area:db,area:infra,type:feature,prio:p0",M8 – Productionization,
+Launch readiness & go/no-go,"- Capacity plan, error budgets, rollback plan, dashboards
+
+**Estimate:** 0.75d","phase:P2,area:ops,type:doc,prio:p0",M8 – Productionization,
+Broker abstraction v2 & capabilities matrix,"- Normalize order types, TIFs, venue quirks
+- Capability discovery per adapter
+
+**Estimate:** 1.5d","phase:P3,area:broker,type:feature,prio:p0",M9 – Multi-Broker & FIX,
+FIX gateway (4.4/5.0) session mgmt,"- Initiator sessions
+- Heartbeats & resends
+- Persistent sequence store
+
+**Estimate:** 2d","phase:P3,area:broker,area:fix,type:feature,prio:p0",M9 – Multi-Broker & FIX,
+Drop-copy ingestion & reconcile,"- Normalize exec reports
+- De-dup & match to local orders
+
+**Estimate:** 1d","phase:P3,area:broker,area:fix,type:feature,prio:p0",M9 – Multi-Broker & FIX,
+Adaper: Alpaca (equities),"- Auth, order map, execs, positions
+- Limits (paper-only in staging)
+
+**Estimate:** 1.5d","phase:P3,area:broker,type:feature,prio:p1",M9 – Multi-Broker & FIX,
+Adapter: Coinbase (crypto),"- REST/WebSocket integration
+- Time sync & nonce handling
+
+**Estimate:** 1.5d","phase:P3,area:broker,type:feature,prio:p1",M9 – Multi-Broker & FIX,
+Smart account/venue routing rules,"- Per-tenant route rules; spillover/failback
+
+**Estimate:** 1d","phase:P3,area:oms,area:broker,type:feature,prio:p1",M9 – Multi-Broker & FIX,
+Cross-broker reconciliation,"- Positions & exec normalization across venues
+
+**Estimate:** 1d","phase:P3,area:broker,area:oms,type:feature,prio:p1",M9 – Multi-Broker & FIX,
+M9 tests & soak,"- Dual-broker routing
+- Drop-copy no-dup rule
+- FIX auto-recover <60s
+
+**Estimate:** 1.5d","phase:P3,area:qa,area:broker,type:test,prio:p0",M9 – Multi-Broker & FIX,
+Historical data ingestion pipeline,"- Bars + trades/quotes
+- Vendor adapters & licensing toggles
+
+**Estimate:** 1.5d","phase:P3,area:research,area:data-platform,type:feature,prio:p0",M10 – Research & Backtesting,
+Deterministic backtester,"- Event loop parity with live
+- Slippage/fees models
+
+**Estimate:** 2d","phase:P3,area:research,type:feature,prio:p0",M10 – Research & Backtesting,
+Batch runs & results registry,"- Param grids, walk-forward
+- Artifacts in S3
+
+**Estimate:** 1.25d","phase:P3,area:research,area:infra,type:feature,prio:p1",M10 – Research & Backtesting,
+Strategy packaging standard,"- Data contracts, seeds
+- Reproducibility docs
+
+**Estimate:** 0.75d","phase:P3,area:strategies,area:research,type:doc,prio:p1",M10 – Research & Backtesting,
+M10 validation,"- Live vs sim PnL diff <2% on replay (configurable)
+
+**Estimate:** 1d","phase:P3,area:qa,area:research,type:test,prio:p0",M10 – Research & Backtesting,
+"Portfolio aggregation (multi-broker, FX)","- Normalize across currencies/venues
+
+**Estimate:** 1.25d","phase:P3,area:risk,type:feature,prio:p0",M11 – Risk 2.0,
+VaR/ES intraday engine,"- Historical/Monte Carlo
+- Refresh ≤60s @1k positions
+
+**Estimate:** 2d","phase:P3,area:risk,type:feature,prio:p0",M11 – Risk 2.0,
+Scenario & stress testing,"- Shock curves & persistence
+- Policy limits with throttles
+
+**Estimate:** 1.25d","phase:P3,area:risk,type:feature,prio:p1",M11 – Risk 2.0,
+Headroom APIs & snapshots,"- Time-partitioned risk snapshots
+- PM tooling endpoints
+
+**Estimate:** 1d","phase:P3,area:risk,area:api,type:feature,prio:p1",M11 – Risk 2.0,
+M11 validation,"- Reproducible scenarios (seeded)
+- Blocks/orders on breach
+
+**Estimate:** 1d","phase:P3,area:qa,area:risk,type:test,prio:p0",M11 – Risk 2.0,
+WebSocket gateway,"- Auth, resubscribe, backfill cursor
+
+**Estimate:** 1.5d","phase:P3,area:sdk,area:api,type:feature,prio:p0",M12 – Streaming APIs & SDKs,
+gRPC services (optional),"- Data/events streaming services
+
+**Estimate:** 1.5d","phase:P3,area:sdk,area:api,type:feature,prio:p2",M12 – Streaming APIs & SDKs,
+Client SDK – Python,"- Auth, MD stream, orders, events
+- Examples
+
+**Estimate:** 1.25d","phase:P3,area:sdk,type:feature,prio:p0",M12 – Streaming APIs & SDKs,
+Client SDK – TypeScript,"- Auth, MD stream, orders, events
+- Examples
+
+**Estimate:** 1.25d","phase:P3,area:sdk,type:feature,prio:p0",M12 – Streaming APIs & SDKs,
+Streaming load test,"- 50K msgs/min, p95<100ms
+
+**Estimate:** 1d","phase:P3,area:qa,area:observability,type:test,prio:p0",M12 – Streaming APIs & SDKs,
+Options/futures contract handling,"- Chains, expiries, greeks (vendor/IB)
+
+**Estimate:** 1.5d","phase:P4,area:derivatives,type:feature,prio:p0",M13 – Derivatives & Complex Orders,
+Multileg order support,"- Verticals/calendars
+- Venue IOC/FOK/PEG parity
+
+**Estimate:** 1.75d","phase:P4,area:derivatives,area:oms,type:feature,prio:p0",M13 – Derivatives & Complex Orders,
+Greek-based risk gates,"- Net delta/theta/vega limits
+
+**Estimate:** 1d","phase:P4,area:risk,area:derivatives,type:feature,prio:p1",M13 – Derivatives & Complex Orders,
+Portfolio margin support,"- Where applicable; policy toggles
+
+**Estimate:** 1.25d","phase:P4,area:risk,area:derivatives,type:feature,prio:p2",M13 – Derivatives & Complex Orders,
+M13 tests,"- Multileg lifecycle e2e
+- Greek limits enforcement
+
+**Estimate:** 1.25d","phase:P4,area:qa,area:derivatives,type:test,prio:p0",M13 – Derivatives & Complex Orders,
+Surveillance rules,"- Wash/cross, spoofing heuristics, restricted lists
+
+**Estimate:** 1.5d","phase:P4,area:compliance,type:feature,prio:p0",M14 – Compliance & Reporting,
+Regulatory exports (CAT/MiFID II/EMIR),"- Pluggable reporters
+- Schema validation
+
+**Estimate:** 1.75d","phase:P4,area:compliance,area:reporting,type:feature,prio:p0",M14 – Compliance & Reporting,
+WORM audit export & legal hold,"- Immutable exports with retention policies
+
+**Estimate:** 1d","phase:P4,area:compliance,area:security,type:feature,prio:p1",M14 – Compliance & Reporting,
+M14 tests,"- Synthetic violations → cases in <1m
+- Export schema validation
+
+**Estimate:** 1.25d","phase:P4,area:qa,area:compliance,type:test,prio:p0",M14 – Compliance & Reporting,
+Active-active read-mostly design,"- API/data fan-out; warm standby for OLTP
+
+**Estimate:** 1.5d","phase:P4,area:infra,area:multiregion,type:feature,prio:p1",M15 – Resilience & Latency,
+Region-local connectors/strategies,"- Venue-local path for latency
+
+**Estimate:** 1.25d","phase:P4,area:infra,area:latency,type:feature,prio:p1",M15 – Resilience & Latency,
+Latency budget monitoring,"- client→ack; tick→signal→order
+
+**Estimate:** 0.75d","phase:P4,area:observability,area:latency,type:feature,prio:p1",M15 – Resilience & Latency,
+Failover drill ≤10m,"- Procedure + automation
+
+**Estimate:** 1d","phase:P4,area:ops,area:infra,type:test,prio:p0",M15 – Resilience & Latency,
+Event backbone (Kafka/Redpanda),"- CDC from OLTP
+- Topics & retention
+
+**Estimate:** 1.5d","phase:P4,area:data-platform,type:feature,prio:p1",M16 – Data Platform,
+Time-series DB & materialized views,"- Timescale/QuestDB
+- OHLCV marts
+
+**Estimate:** 1.25d","phase:P4,area:data-platform,type:feature,prio:p1",M16 – Data Platform,
+Lakehouse (S3+Iceberg/Delta) & dbt,"- Research datasets, lineage
+
+**Estimate:** 1.5d","phase:P4,area:data-platform,area:research,type:feature,prio:p2",M16 – Data Platform,
+T+0 BI dashboards,"- Close +5m readiness; p95<2s common queries
+
+**Estimate:** 1d","phase:P4,area:data-platform,area:reporting,type:feature,prio:p1",M16 – Data Platform,
+Usage metering,"- Orders, MD msgs, storage, compute minutes
+
+**Estimate:** 1.25d","phase:P4,area:billing,type:feature,prio:p1",M17 – Billing & Entitlements,
+Plans/limits & feature flags,"- Entitlements per tenant
+
+**Estimate:** 1d","phase:P4,area:billing,area:auth,type:feature,prio:p1",M17 – Billing & Entitlements,
+"Admin console (break-glass, impersonation)","- All audited actions
+
+**Estimate:** 1.25d","phase:P4,area:admin,area:security,type:feature,prio:p2",M17 – Billing & Entitlements,
+M17 validation,"- Over-limit behavior graceful (429/throttle) with audit
+
+**Estimate:** 0.75d","phase:P4,area:qa,area:billing,type:test,prio:p1",M17 – Billing & Entitlements,
+Policy suite & control mapping,"- Access, SDLC, incident, DR; SOC2/ISO mapping
+
+**Estimate:** 1d","phase:P4,area:security,type:doc,prio:p1",M18 – Security & Assurance,
+Continuous vulnerability mgmt,"- SBOM attestations; image signing enforcement
+
+**Estimate:** 1d","phase:P4,area:security,area:ci,type:chore,prio:p1",M18 – Security & Assurance,
+Quarterly disaster & incident drills,"- Evidence collection automation
+
+**Estimate:** 1d","phase:P4,area:security,area:ops,type:test,prio:p1",M18 – Security & Assurance,

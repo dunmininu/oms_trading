@@ -1,0 +1,4 @@
+
+description: logging — only log sanitized ModelSchema/ResponseSchema; repositories log query fingerprints not raw SQL; on codes_5xx include event_key for correlation; build optimally always
+alwaysApply: true
+---

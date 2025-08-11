@@ -1,0 +1,4 @@
+
+description: enforce clean architecture — repositories for data access, usecases for business rules, and service files for orchestration; always introduce ModelSchema for payloads, FilterSchema for list endpoints, and ResponseSchema for outputs; define codes_2xx/codes_4xx/codes_5xx explicitly per endpoint; build optimally always with small, composable units
+alwaysApply: true
+---

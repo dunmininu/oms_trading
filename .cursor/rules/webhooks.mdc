@@ -1,0 +1,4 @@
+
+description: Webhooks — define OutboundEventSchema v1 with event_id, tenant_id, type, payload, signature_ts; delivery service adds HMAC; ResponseSchema for admin lists includes attempt_count and DLQ flag; codes_2xx=202 for queued send
+alwaysApply: false
+---

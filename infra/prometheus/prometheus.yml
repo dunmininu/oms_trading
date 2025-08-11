@@ -1,0 +1,66 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Django Web Application
+  - job_name: 'django-web'
+    static_configs:
+      - targets: ['web:8000']
+    metrics_path: '/metrics/'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Celery Workers (they don't expose metrics on port 8000)
+  - job_name: 'celery-workers'
+    static_configs:
+      - targets: ['celery-worker:8000']
+    metrics_path: '/metrics/'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    # Note: Celery workers need to be configured to expose metrics
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # PostgreSQL (requires postgres_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+
+  # Flower (Celery monitoring)
+  - job_name: 'flower'
+    static_configs:
+      - targets: ['flower:5555']
+    scrape_interval: 30s
+
+  # Nginx (if using nginx-prometheus-exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    scrape_interval: 30s
+
+# Alerting rules
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Recording rules can be added here as needed
+# Example:
+# - record: job:http_inprogress_requests:sum
+#   expr: sum(http_inprogress_requests) by (job)

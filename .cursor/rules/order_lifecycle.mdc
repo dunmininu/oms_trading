@@ -1,0 +1,4 @@
+
+description: define Order lifecycle as a state machine in service files; transitions enforced via usecases; expose ResponseSchema with current_state and allowed_transitions; codes_4xx=409 on invalid transitions; repositories persist auditable events
+alwaysApply: true
+---

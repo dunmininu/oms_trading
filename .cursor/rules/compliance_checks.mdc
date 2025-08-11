@@ -1,0 +1,4 @@
+
+description: Compliance checks (restricted hours/symbols/wash) modeled as usecases; FilterSchema for calendars; ResponseSchema on block includes rule_id; codes_4xx=422 COMPLIANCE_BLOCKED
+alwaysApply: true
+---

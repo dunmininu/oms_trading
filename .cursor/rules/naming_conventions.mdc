@@ -1,0 +1,4 @@
+
+description: naming — *ModelSchema suffix* for requests, *FilterSchema* for filters, *ResponseSchema* for responses, *Repository* for data access, *Usecase* for business logic, *Service* for orchestration; build optimally always
+alwaysApply: true
+---

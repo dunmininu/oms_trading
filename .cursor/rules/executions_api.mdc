@@ -1,0 +1,4 @@
+
+description: Executions API — GET with ExecutionFilterSchema (order_id, time range, cursor); ResponseSchema aggregates fees and realized_pnl; repositories must be partition-aware; codes_2xx=200; build optimally always
+alwaysApply: false
+---

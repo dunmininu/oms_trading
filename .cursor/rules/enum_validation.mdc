@@ -1,0 +1,4 @@
+
+description: define strict enum types (Side, OrderType, TIF, State) in shared schemas; validate early in ModelSchema; codes_4xx=422 on invalid enum; ResponseSchema echoes canonical values
+alwaysApply: true
+---

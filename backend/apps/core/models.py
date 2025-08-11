@@ -3,7 +3,7 @@ Core models and mixins for OMS Trading system.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from django.contrib.auth.models import AbstractUser
@@ -39,7 +39,9 @@ class TenantAwareModel(BaseModel):
         'tenants.Tenant',
         on_delete=models.CASCADE,
         related_name='%(class)s_set',
-        db_index=True
+        db_index=True,
+        null=True,  # Allow null for core models
+        blank=True
     )
     
     class Meta:
@@ -64,11 +66,24 @@ class User(AbstractUser, BaseModel):
     phone_number = models.CharField(max_length=20, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     profile_picture = models.URLField(blank=True)
+
+    # Profile fields
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    bio = models.TextField(blank=True, max_length=500)
+    timezone = models.CharField(max_length=50, default='UTC')
+    language = models.CharField(max_length=10, default='en')
+
+    # Security fields
+    last_password_change = models.DateTimeField(blank=True, null=True)
+    failed_login_attempts = models.PositiveIntegerField(default=0)
+    locked_until = models.DateTimeField(blank=True, null=True)
     
     # Email verification
     email_verified = models.BooleanField(default=False)
     email_verification_token = models.UUIDField(default=uuid.uuid4, editable=False)
     email_verification_expires = models.DateTimeField(null=True, blank=True)
+    two_factor_enabled = models.BooleanField(default=False)
+
     
     # Password reset
     password_reset_token = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -119,6 +134,25 @@ class User(AbstractUser, BaseModel):
             self.email = self.email.lower()
         super().save(*args, **kwargs)
 
+    def is_locked(self):
+        """Check if user account is locked."""
+        if self.locked_until and self.locked_until > timezone.now():
+            return True
+        return False
+    
+    def increment_failed_login(self):
+        """Increment failed login attempts."""
+        self.failed_login_attempts += 1
+        if self.failed_login_attempts >= 5:  # Lock after 5 failed attempts
+            self.locked_until = timezone.now() + timedelta(minutes=30)
+        self.save()
+    
+    def reset_failed_login(self):
+        """Reset failed login attempts."""
+        self.failed_login_attempts = 0
+        self.locked_until = None
+        self.save()
+
 
 class AuditLog(BaseModel):
     """Audit log for tracking all system activities."""
@@ -142,12 +176,8 @@ class AuditLog(BaseModel):
         ('BROKER_DISCONNECT', 'Broker Disconnect'),
     ]
     
-    tenant = models.ForeignKey(
-        'tenants.Tenant',
-        on_delete=models.CASCADE,
-        related_name='audit_logs',
-        db_index=True
-    )
+    # Tenant is optional for system-level audit logs
+    tenant_id = models.UUIDField(null=True, blank=True, db_index=True)
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -171,9 +201,9 @@ class AuditLog(BaseModel):
         verbose_name = _('audit log')
         verbose_name_plural = _('audit logs')
         indexes = [
-            models.Index(fields=['tenant', 'action']),
-            models.Index(fields=['tenant', 'resource_type']),
-            models.Index(fields=['tenant', 'created_at']),
+            models.Index(fields=['tenant_id', 'action']),
+            models.Index(fields=['tenant_id', 'resource_type']),
+            models.Index(fields=['tenant_id', 'created_at']),
             models.Index(fields=['user', 'created_at']),
             models.Index(fields=['action', 'created_at']),
         ]
