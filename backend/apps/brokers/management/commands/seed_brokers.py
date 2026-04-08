@@ -46,3 +46,31 @@ class Command(BaseCommand):
         )
         if created:
             self.stdout.write(self.style.SUCCESS(f'Created connection: {connection.name}'))
+
+        # 4. Create Deriv Broker
+        deriv_broker, created = Broker.objects.update_or_create(
+            name='DERIV',
+            defaults={
+                'display_name': 'Deriv (Binary.com)',
+                'broker_type': 'DERIV',
+                'host': 'wss://ws.binaryws.com/websockets/v3',
+                'is_active': True,
+                'is_testing': True,
+            }
+        )
+        if created:
+            self.stdout.write(self.style.SUCCESS(f'Created broker: {deriv_broker.display_name}'))
+
+        # 5. Create VIX Instruments
+        for vix_sym in ['VIX25', 'VIX100']:
+            from apps.oms.models import Instrument
+            Instrument.objects.update_or_create(
+                symbol=vix_sym,
+                defaults={
+                    'name': f'Volatility {vix_sym} Index',
+                    'instrument_type': 'OTHER',
+                    'exchange': 'OTHER',
+                    'is_active': True,
+                    'is_tradable': True,
+                }
+            )

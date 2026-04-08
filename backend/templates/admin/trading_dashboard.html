@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="module">
+        <h2>Active Positions</h2>
+        <table style="width: 100%;">
+            <thead>
+                <tr><th>Instrument</th><th>Quantity</th><th>Avg Cost</th><th>Unrealized PnL</th></tr>
+            </thead>
+            <tbody>
+                {% for pos in active_positions %}
+                <tr>
+                    <td>{{ pos.instrument.symbol }}</td>
+                    <td>{{ pos.quantity }}</td>
+                    <td>{{ pos.average_cost }}</td>
+                    <td style="color: {% if pos.unrealized_pnl >= 0 %}green{% else %}red{% endif %};">
+                        {{ pos.unrealized_pnl }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module">
+        <h2>Recent Strategy Performance</h2>
+        <table style="width: 100%;">
+            <thead>
+                <tr><th>Setup</th><th>TF</th><th>Trades</th><th>Win %</th></tr>
+            </thead>
+            <tbody>
+                {% for perf in setup_performances %}
+                <tr>
+                    <td>{{ perf.setup_type }}</td>
+                    <td>{{ perf.timeframe }}</td>
+                    <td>{{ perf.total_trades }}</td>
+                    <td>{{ perf.success_rate }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="module" style="margin-top: 20px;">
+    <h2>Recent Orders</h2>
+    <table style="width: 100%;">
+        <thead>
+            <tr><th>Time</th><th>Order ID</th><th>Symbol</th><th>Side</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            {% for order in recent_orders %}
+            <tr>
+                <td>{{ order.created_at|date:"H:i:s" }}</td>
+                <td>{{ order.client_order_id }}</td>
+                <td>{{ order.instrument.symbol }}</td>
+                <td>{{ order.side }}</td>
+                <td>{{ order.state }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
