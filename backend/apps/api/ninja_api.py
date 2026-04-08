@@ -24,7 +24,6 @@ api = NinjaAPI(
     docs_url="/docs",
     openapi_url="/openapi.json",
     urls_namespace="api",
-    csrf=False,  # API doesn't need CSRF
 )
 
 # Add custom exception handler
