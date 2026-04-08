@@ -20,6 +20,7 @@ class ICTSetupService:
         A bullish FVG occurs when the low of candle 3 is above the high of candle 1.
         A bearish FVG occurs when the high of candle 3 is below the low of candle 1.
         """
+        # Note: Instrument is global, HistoricalData is linked to Instrument
         bars = list(HistoricalData.objects.filter(
             instrument=instrument,
             interval=interval,

@@ -89,21 +89,30 @@ class MarketDataService:
             useRTH=True
         )
 
-        with transaction.atomic():
-            for bar in bars:
-                HistoricalData.objects.update_or_create(
+        # Use bulk_create for better scalability
+        existing_times = set(HistoricalData.objects.filter(
+            instrument=instrument,
+            interval=interval,
+            data_type='OHLC'
+        ).values_list('start_time', flat=True))
+
+        new_bars = []
+        for bar in bars:
+            if bar.date not in existing_times:
+                new_bars.append(HistoricalData(
                     instrument=instrument,
                     data_type='OHLC',
                     interval=interval,
                     start_time=bar.date,
-                    defaults={
-                        'end_time': bar.date + timedelta(minutes=15) if interval == '15_MINUTE' else bar.date + timedelta(hours=4),
-                        'open_price': bar.open,
-                        'high_price': bar.high,
-                        'low_price': bar.low,
-                        'close_price': bar.close,
-                        'volume': bar.volume if bar.volume > 0 else 0,
-                    }
-                )
+                    end_time=bar.date + timedelta(minutes=15) if interval == '15_MINUTE' else bar.date + timedelta(hours=4),
+                    open_price=bar.open,
+                    high_price=bar.high,
+                    low_price=bar.low,
+                    close_price=bar.close,
+                    volume=bar.volume if bar.volume > 0 else 0,
+                ))
+
+        if new_bars:
+            HistoricalData.objects.bulk_create(new_bars, batch_size=500)
 
         logger.info(f"Stored {len(bars)} bars for {instrument.symbol} ({interval})")

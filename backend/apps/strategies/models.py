@@ -270,6 +270,36 @@ class StrategyRun(BaseModel):
         self.save()
 
 
+class SetupPerformance(BaseModel):
+    """Tracks performance of specific setup types for self-learning."""
+
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='setup_performances'
+    )
+    instrument = models.ForeignKey(
+        'oms.Instrument',
+        on_delete=models.CASCADE
+    )
+    setup_type = models.CharField(max_length=100)  # e.g., 'FVG_BULLISH', 'SWEEP_BEARISH'
+    timeframe = models.CharField(max_length=20)
+
+    total_trades = models.PositiveIntegerField(default=0)
+    winning_trades = models.PositiveIntegerField(default=0)
+    total_pnl = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'))
+
+    @property
+    def success_rate(self):
+        if self.total_trades == 0:
+            return Decimal('0.00')
+        return (Decimal(self.winning_trades) / Decimal(self.total_trades)) * 100
+
+    class Meta:
+        db_table = 'strategies_setup_performance'
+        unique_together = ['tenant', 'instrument', 'setup_type', 'timeframe']
+
+
 class StrategyPerformance(BaseModel):
     """Strategy performance tracking model."""
     

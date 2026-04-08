@@ -50,6 +50,11 @@ class Command(BaseCommand):
         self.stdout.write(f"Setup Grade: {grading_result['grade']} (Score: {grading_result['score']})")
         self.stdout.write(f"Direction: {grading_result['direction']}, Signals: {grading_result['ict_signals']}")
 
+        # Display ML Confidence
+        from apps.strategies.ml_services import MLStrategyService
+        ml_prediction = MLStrategyService.predict_setup(btcusd, '15_MINUTE')
+        self.stdout.write(f"ML Confidence: {ml_prediction['confidence']} (Prob: {ml_prediction['probability']:.2f})")
+
         # 4. Test Risk Validation
         self.stdout.write("Running Risk Validation...")
         # Assume $100k balance for testing

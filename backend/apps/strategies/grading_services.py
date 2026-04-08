@@ -6,7 +6,10 @@ import logging
 from typing import Dict, Any, List
 from .ict_services import ICTSetupService
 from .quant_services import QuantService
+from .learning_services import LearningService
+from .ml_services import MLStrategyService
 from apps.oms.models import Instrument
+from apps.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +17,7 @@ class GradingService:
     """Service for grading trade setups (A+ to D-)."""
 
     @classmethod
-    def grade_setup(cls, instrument: Instrument, interval: str) -> Dict[str, Any]:
+    def grade_setup(cls, instrument: Instrument, interval: str, tenant: Tenant = None) -> Dict[str, Any]:
         """
         Grade a setup based on confluence.
         A+: ICT Signal + Quant Confirmation + Higher Timeframe alignment.
@@ -65,6 +68,23 @@ class GradingService:
                 score += 1
             if latest_ict_bearish and htf_regime['regime'] != 'OVERSOLD':
                 score += 1
+
+        # 5. Apply Learning-based adjustment
+        if tenant and has_ict_signal:
+            setup_type = 'FVG' if fvgs else 'SWEEP'
+            adj = LearningService.get_setup_adjustment(tenant, instrument, setup_type, interval)
+            score += adj
+            logger.info(f"Learning adjustment for {setup_type}: {adj}")
+
+        # 6. Apply ML Confidence Adjustment
+        ml_prediction = MLStrategyService.predict_setup(instrument, interval)
+        if ml_prediction['confidence'] == 'HIGH':
+            if ml_prediction['probability'] > 0.7 and (latest_ict_bullish or regime_data['regime'] == 'OVERSOLD'):
+                score += 1
+                logger.info("ML Boosted setup score: High probability BULLISH confluence")
+            elif ml_prediction['probability'] < 0.3 and (latest_ict_bearish or regime_data['regime'] == 'OVERBOUGHT'):
+                score += 1
+                logger.info("ML Boosted setup score: High probability BEARISH confluence")
 
         if score >= 3:
             grade = 'A+'

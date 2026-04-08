@@ -4,6 +4,8 @@ Quantitative analysis services including Mean Reversion, Momentum, and Black-Sch
 
 import math
 import logging
+import pandas as pd
+import numpy as np
 from typing import Dict, Any, List
 from decimal import Decimal
 from scipy.stats import norm
@@ -13,39 +15,39 @@ from apps.oms.models import Instrument
 logger = logging.getLogger(__name__)
 
 class QuantService:
-    """Service for quantitative models."""
+    """Service for quantitative models using vectorized calculations."""
 
     @classmethod
     def calculate_rsi(cls, prices: List[float], period: int = 14) -> float:
-        """Calculate Relative Strength Index (RSI) for momentum."""
+        """Calculate RSI using Pandas for vectorized operations."""
         if len(prices) <= period:
             return 50.0
 
-        deltas = [prices[i+1] - prices[i] for i in range(len(prices)-1)]
-        gain = [d if d > 0 else 0 for d in deltas]
-        loss = [-d if d < 0 else 0 for d in deltas]
+        series = pd.Series(prices)
+        delta = series.diff()
 
-        avg_gain = sum(gain[:period]) / period
-        avg_loss = sum(loss[:period]) / period
+        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
 
-        if avg_loss == 0: return 100.0
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
 
-        rs = avg_gain / avg_loss
-        return 100.0 - (100.0 / (1+rs))
+        val = rsi.iloc[-1]
+        return float(val) if not np.isnan(val) else 50.0
 
     @classmethod
     def calculate_z_score(cls, prices: List[float], period: int = 20) -> float:
-        """Calculate Z-Score for mean reversion."""
+        """Calculate Z-Score using Pandas."""
         if len(prices) < period:
             return 0.0
 
-        recent_prices = prices[-period:]
-        mean = sum(recent_prices) / period
-        variance = sum((p - mean) ** 2 for p in recent_prices) / period
-        std_dev = math.sqrt(variance)
+        series = pd.Series(prices)
+        rolling_mean = series.rolling(window=period).mean()
+        rolling_std = series.rolling(window=period).std()
 
-        if std_dev == 0: return 0.0
-        return (recent_prices[-1] - mean) / std_dev
+        z_scores = (series - rolling_mean) / rolling_std
+        val = z_scores.iloc[-1]
+        return float(val) if not np.isnan(val) else 0.0
 
     @classmethod
     def black_scholes(
