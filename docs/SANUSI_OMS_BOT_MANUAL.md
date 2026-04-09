@@ -77,14 +77,18 @@ The bot uses a **Half-Kelly** model to determine the exact quantity to trade:
 
 ---
 
-## 5. Trading Command Center (UI)
+## 5. Trading Command Center (The Quant Power Tool)
 
-The bot provides a real-time dashboard accessible via the **Django Admin**:
+The bot transforms the Django Admin into a high-density institutional dashboard:
 1.  Login to `http://localhost:8000/admin`.
 2.  Navigate to **Strategies** -> **Strategy Runs** -> **Dashboard**.
-3.  **Active Positions**: Monitor your live exposure and unrealized PnL.
-4.  **Strategy Performance**: View which setup types are currently "winning" according to the self-learning model.
-5.  **Recent Orders**: A real-time audit trail of every buy/sell action.
+
+### Key Power Tool Features:
+-   **Active Exposure Monitor**: Real-time calculation of total market value and account-wide unrealized PnL.
+-   **Setup Alpha Table**: Visualizes the win rate and expected value of every ICT setup type (FVG, Sweeps) across different timeframes.
+-   **Bulk Strategy Control**: Start, stop, or reset the performance metrics of dozens of strategies simultaneously via the Strategy List view.
+-   **Health Check Indicators**: Live visual cues (● ACTIVE / ○ INACTIVE) reflecting the heartbeat of background strategy tasks.
+-   **Risk Heatmap**: Individual position risk percentages shown relative to account equity.
 
 ---
 

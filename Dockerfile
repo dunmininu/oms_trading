@@ -20,11 +20,10 @@ RUN apt-get update && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy all requirements and install Python dependencies
-COPY requirements/ /requirements/
+# Copy requirements and install Python dependencies
+COPY requirements.txt ./
 RUN pip install --upgrade pip setuptools wheel
-RUN pip install -r /requirements/base.txt
-RUN pip install -r /requirements/dev.txt
+RUN pip install -r requirements.txt
 
 # Copy application code for runtime
 COPY backend/ ./backend/
