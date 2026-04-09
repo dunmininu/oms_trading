@@ -47,6 +47,23 @@ class Command(BaseCommand):
         if created:
             self.stdout.write(self.style.SUCCESS(f'Created connection: {connection.name}'))
 
+        # 3b. Create Broker Account for the connection
+        from apps.brokers.models import BrokerAccount
+        account, created = BrokerAccount.objects.update_or_create(
+            tenant=tenant,
+            broker_connection=connection,
+            account_number='U1234567',
+            defaults={
+                'account_name': 'Main IB Account',
+                'account_type': 'INDIVIDUAL',
+                'status': 'ACTIVE',
+                'currency': 'USD',
+                'is_active': True,
+            }
+        )
+        if created:
+            self.stdout.write(self.style.SUCCESS(f'Created broker account: {account.account_number}'))
+
         # 4. Create Deriv Broker
         deriv_broker, created = Broker.objects.update_or_create(
             name='DERIV',

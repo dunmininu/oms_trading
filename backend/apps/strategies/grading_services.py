@@ -17,14 +17,19 @@ class GradingService:
     """Service for grading trade setups (A+ to D-)."""
 
     @classmethod
-    def grade_setup(cls, instrument: Instrument, interval: str, tenant: Tenant = None) -> Dict[str, Any]:
+    def grade_setup(cls, instrument: Instrument, interval: str, tenant: Tenant = None,
+                    backtest_setup=None, backtest_quant=None, backtest_ml_prob=None) -> Dict[str, Any]:
         """
         Grade a setup based on confluence.
-        A+: ICT Signal + Quant Confirmation + Higher Timeframe alignment.
-        B: ICT Signal + Quant Confirmation.
-        C: ICT Signal only.
-        D: Weak Signal.
         """
+        if backtest_setup:
+            # Backtest fast-path
+            score = 1
+            if backtest_ml_prob > 0.6: score += 1
+            if backtest_quant['regime'] != 'NEUTRAL': score += 1
+            grade = 'A+' if score >= 3 else 'B' if score == 2 else 'C'
+            return {'grade': grade, 'score': score}
+
         # 1. Get ICT Signals
         fvgs = ICTSetupService.detect_fvg(instrument, interval)
         sweeps = ICTSetupService.detect_liquidity_sweeps(instrument, interval)

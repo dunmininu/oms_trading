@@ -347,3 +347,17 @@ class StrategyPerformance(BaseModel):
     
     def __str__(self):
         return f"{self.strategy.name} - {self.date}"
+
+class BacktestResult(BaseModel):
+    """Model to store backtesting results and performance metrics."""
+    instrument = models.ForeignKey('oms.Instrument', on_delete=models.CASCADE)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    total_trades = models.IntegerField(default=0)
+    win_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    total_pnl = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    final_equity = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    equity_curve = models.JSONField(default=list)
+
+    def __str__(self):
+        return f"Backtest {self.instrument.symbol} {self.start_date.date()} to {self.end_date.date()}"

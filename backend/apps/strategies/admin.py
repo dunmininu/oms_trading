@@ -6,7 +6,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import path
 from django.shortcuts import render
-from .models import Strategy, StrategyRun, SetupPerformance, StrategyPerformance
+import json
+from .models import Strategy, StrategyRun, SetupPerformance, StrategyPerformance, BacktestResult
 
 @admin.register(SetupPerformance)
 class SetupPerformanceAdmin(admin.ModelAdmin):
@@ -50,6 +51,20 @@ class StrategyAdmin(admin.ModelAdmin):
     def reset_performance(self, request, queryset):
         queryset.update(total_pnl=0, total_trades=0, win_rate=0)
     reset_performance.short_description = "↺ Reset performance metrics"
+
+@admin.register(BacktestResult)
+class BacktestResultAdmin(admin.ModelAdmin):
+    list_display = ('instrument', 'start_date', 'end_date', 'total_trades', 'win_rate_display', 'total_pnl_display')
+    readonly_fields = ('instrument', 'start_date', 'end_date', 'total_trades', 'win_rate', 'total_pnl', 'final_equity', 'equity_curve')
+
+    def win_rate_display(self, obj):
+        return f"{obj.win_rate}%"
+    win_rate_display.short_description = 'Win Rate'
+
+    def total_pnl_display(self, obj):
+        color = 'green' if obj.total_pnl >= 0 else 'red'
+        return format_html('<b style="color: {};">${}</b>', color, obj.total_pnl)
+    total_pnl_display.short_description = 'Total PnL'
 
 @admin.register(StrategyRun)
 class StrategyRunAdmin(admin.ModelAdmin):
