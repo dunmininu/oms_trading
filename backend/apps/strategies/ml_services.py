@@ -142,3 +142,17 @@ class MLStrategyService:
         loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
         rs = gain / loss
         return 100 - (100 / (1 + rs))
+
+    @classmethod
+    def predict_success(cls, setup: Dict[str, Any], quant_data: Dict[str, Any]) -> float:
+        """Heuristic-based probability for backtesting when a trained model is unavailable."""
+        prob = 0.5
+        # Align with ICT
+        if setup['type'] == 'BULLISH' and quant_data['regime'] == 'OVERSOLD':
+            prob += 0.2
+        elif setup['type'] == 'BEARISH' and quant_data['regime'] == 'OVERBOUGHT':
+            prob += 0.2
+        # Mean reversion alignment
+        if abs(quant_data['z_score']) > 1.5:
+            prob += 0.1
+        return min(max(prob, 0.0), 1.0)
