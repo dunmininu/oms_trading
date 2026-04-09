@@ -63,6 +63,33 @@ class OMSService:
                     order.save()
                     return order
 
+            # Handle Deriv Trades
+            if broker_account.broker_connection.broker.broker_type == 'DERIV':
+                order.state = 'PENDING_SUBMIT'
+                order.save()
+
+                # Deriv typically uses 'CALL' for Buy and 'PUT' for Sell in digital options
+                # Or regular trades if using their MT5/Binary API
+                contract_type = 'CALL' if side == 'BUY' else 'PUT'
+                response = await client.place_trade(instrument.symbol, float(quantity), contract_type)
+
+                if "error" in response:
+                    order.state = 'REJECTED'
+                    order.reject_reason = response["error"]["message"]
+                    order.save()
+                    return order
+
+                order.broker_order_id = str(response["buy"]["contract_id"])
+                order.state = 'FILLED' # Deriv digital options are immediate
+                order.filled_quantity = quantity
+                order.filled_at = timezone.now()
+                order.save()
+
+                # Update position for Deriv
+                cls._update_deriv_position(order, response)
+                return order
+
+            # Handle IB Trades
             if instrument.symbol == 'GBPJPY':
                 contract = create_gbpjpy_contract()
             elif instrument.symbol == 'BTCUSD' or instrument.symbol == 'BTC':
@@ -163,6 +190,25 @@ class OMSService:
 
         except Exception as e:
             print(f"OMS CALLBACK ERROR (Fill): {e}")
+
+    @classmethod
+    def _update_deriv_position(cls, order, response):
+        """Update position for Deriv trades."""
+        pos, created = Position.objects.get_or_create(
+            tenant=order.tenant,
+            broker_account=order.broker_account,
+            instrument=order.instrument,
+            defaults={'quantity': Decimal('0.0000'), 'average_cost': Decimal('0.0000')}
+        )
+
+        buy_price = Decimal(str(response["buy"]["price"]))
+        if order.side == 'BUY':
+            pos.quantity += order.quantity
+            pos.average_cost = buy_price
+        else:
+            pos.quantity -= order.quantity
+
+        pos.save()
 
     @classmethod
     def _update_position(cls, order, fill):

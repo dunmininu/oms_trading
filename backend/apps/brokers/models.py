@@ -17,6 +17,7 @@ class Broker(BaseModel):
     
     BROKER_TYPE_CHOICES = [
         ('INTERACTIVE_BROKERS', 'Interactive Brokers'),
+        ('DERIV', 'Deriv'),
         ('TD_AMERITRADE', 'TD Ameritrade'),
         ('CHARLES_SCHWAB', 'Charles Schwab'),
         ('ETRADE', 'E*TRADE'),

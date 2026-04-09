@@ -1,5 +1,5 @@
 """
-Risk Management services for trade validation and position sizing.
+Risk Management services including Kelly Criterion and setup validation.
 """
 
 import logging
@@ -11,7 +11,21 @@ from apps.brokers.models import BrokerAccount
 logger = logging.getLogger(__name__)
 
 class RiskManagementService:
-    """Service for enforcing risk rules."""
+    """Service for advanced risk management and position sizing."""
+
+    @classmethod
+    def calculate_kelly_size(cls, win_prob: float, win_loss_ratio: float = 2.0) -> float:
+        """
+        Calculate trade size using Kelly Criterion.
+        K% = W - [(1 - W) / R]
+        W: Win probability (0-1)
+        R: Win/Loss ratio (2.0 for our 1:2 RR)
+        """
+        # Using "Half-Kelly" for safer retail trading
+        kelly_pct = win_prob - ((1 - win_prob) / win_loss_ratio)
+        half_kelly = max(0, kelly_pct / 2)
+        # Cap at 10% as per user requirements
+        return min(half_kelly, 0.10)
 
     @classmethod
     def validate_trade(
@@ -20,42 +34,35 @@ class RiskManagementService:
         instrument: Instrument,
         grade: str,
         price: Decimal,
-        account_balance: Decimal
+        account_balance: Decimal,
+        win_probability: float = 0.5
     ) -> Dict[str, Any]:
         """
-        Validate if a trade can be taken based on grading and risk rules.
-        - Risk 10% of account max.
-        - Max 5 trades per pair for A+ setup.
-        - Grading determines allowed frequency/exposure.
+        Validate trade and calculate dynamic position size using Kelly Criterion.
         """
-        # 1. Enforce Max Trades per Pair based on Grade
-        grade_limits = {
-            'A+': 5,
-            'B': 3,
-            'C': 1,
-            'D-': 0
-        }
+        grade_limits = {'A+': 5, 'B': 3, 'C': 1, 'D-': 0}
         max_allowed = grade_limits.get(grade, 0)
 
-        current_pos = Position.objects.filter(
-            broker_account=broker_account,
-            instrument=instrument
-        ).first()
-
-        # This is a simplified check: in a real system we'd count open orders too
         if max_allowed == 0:
             return {'allowed': False, 'reason': f"Grade {grade} setups are not tradable."}
 
-        # 2. Calculate Max Position Size (10% of balance)
-        max_risk_amount = account_balance * Decimal('0.10')
-        suggested_qty = max_risk_amount / price
+        # Dynamic Risk Amount using Half-Kelly
+        risk_fraction = cls.calculate_kelly_size(win_probability)
+        if risk_fraction <= 0:
+            return {'allowed': False, 'reason': f"Negative Kelly expectancy ({win_probability:.2f})"}
 
-        # 3. RR Rule (1:2 Max RR should be handled at order placement for TP/SL)
+        max_risk_amount = account_balance * Decimal(str(risk_fraction))
+        # Ensure minimum 1% risk if A+ setup but Kelly is low
+        if grade == 'A+' and max_risk_amount < account_balance * Decimal('0.01'):
+            max_risk_amount = account_balance * Decimal('0.01')
+
+        suggested_qty = max_risk_amount / price
 
         return {
             'allowed': True,
             'suggested_quantity': suggested_qty,
             'max_risk_amount': max_risk_amount,
+            'risk_percent': float(risk_fraction * 100),
             'risk_reward_ratio': 2.0,
             'grade': grade
         }

@@ -5,6 +5,7 @@ from django.conf import settings
 from apps.brokers.models import Broker, BrokerConnection, BrokerAccount
 from libs.ibsdk.client import IBClient
 from libs.ibsdk.mock_client import MockIBClient
+from libs.derivsdk.client import DerivClient
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,12 @@ class BrokerService:
 
         try:
             conn = BrokerConnection.objects.select_related('broker').get(id=connection_id)
+
+            if conn.broker.broker_type == 'DERIV':
+                client = DerivClient(token=conn.api_key)
+                cls._connections[connection_id] = client
+                return client
+
             use_mock = (conn.host_override == '127.0.0.1' or not (conn.host_override or conn.broker.host))
 
             if use_mock:
