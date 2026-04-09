@@ -1,64 +1,143 @@
 {% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}">
+<style>
+    .trading-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .metric-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 5px solid #264b5d;
+    }
+    .metric-value {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .metric-label {
+        color: #666;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+    .status-badge {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+    .status-filled { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+
+    table.full-width { width: 100%; border-collapse: collapse; }
+    table.full-width th, table.full-width td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+
+    .setup-a { color: #28a745; font-weight: bold; }
+    .setup-b { color: #17a2b8; }
+    .setup-c { color: #ffc107; }
+    .setup-d { color: #dc3545; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+<div id="content-main">
+    <div class="trading-grid">
+        <div class="metric-card">
+            <div class="metric-label">Active Exposure</div>
+            <div class="metric-value">${{ total_exposure|default:"0.00" }}</div>
+            <div class="metric-label">{{ active_positions.count }} Active Positions</div>
+        </div>
+        <div class="metric-card" style="border-left-color: #28a745;">
+            <div class="metric-label">Unrealized PnL</div>
+            <div class="metric-value" style="color: {% if unrealized_pnl >= 0 %}#28a745{% else %}#dc3545{% endif %};">
+                ${{ unrealized_pnl|default:"0.00" }}
+            </div>
+            <div class="metric-label">Live Market Value</div>
+        </div>
+        <div class="metric-card" style="border-left-color: #17a2b8;">
+            <div class="metric-label">Strategy Efficiency</div>
+            <div class="metric-value">{{ avg_win_rate|default:"0" }}%</div>
+            <div class="metric-label">Across All Runs</div>
+        </div>
+    </div>
+
     <div class="module">
-        <h2>Active Positions</h2>
-        <table style="width: 100%;">
+        <table class="full-width">
+            <caption>
+                <a href="#" class="section">Real-Time Positions</a>
+            </caption>
             <thead>
-                <tr><th>Instrument</th><th>Quantity</th><th>Avg Cost</th><th>Unrealized PnL</th></tr>
+                <tr>
+                    <th>Instrument</th>
+                    <th>Quantity</th>
+                    <th>Avg Cost</th>
+                    <th>Market Price</th>
+                    <th>Unrealized PnL</th>
+                    <th>Risk Exposure</th>
+                </tr>
             </thead>
             <tbody>
                 {% for pos in active_positions %}
                 <tr>
-                    <td>{{ pos.instrument.symbol }}</td>
+                    <td><b>{{ pos.instrument.symbol }}</b></td>
                     <td>{{ pos.quantity }}</td>
-                    <td>{{ pos.average_cost }}</td>
+                    <td>${{ pos.average_cost }}</td>
+                    <td>${{ pos.market_price }}</td>
                     <td style="color: {% if pos.unrealized_pnl >= 0 %}green{% else %}red{% endif %};">
-                        {{ pos.unrealized_pnl }}
+                        ${{ pos.unrealized_pnl }}
                     </td>
+                    <td>{{ pos.risk_percentage }}%</td>
                 </tr>
+                {% empty %}
+                <tr><td colspan="6">No active positions.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <div class="module">
-        <h2>Recent Strategy Performance</h2>
-        <table style="width: 100%;">
+    <div class="module" style="margin-top: 30px;">
+        <table class="full-width">
+            <caption>
+                <a href="#" class="section">Setup Performance Alpha</a>
+            </caption>
             <thead>
-                <tr><th>Setup</th><th>TF</th><th>Trades</th><th>Win %</th></tr>
+                <tr>
+                    <th>Setup Type</th>
+                    <th>Timeframe</th>
+                    <th>Trades</th>
+                    <th>Win Rate</th>
+                    <th>Expected Value</th>
+                    <th>Net PnL</th>
+                </tr>
             </thead>
             <tbody>
                 {% for perf in setup_performances %}
                 <tr>
-                    <td>{{ perf.setup_type }}</td>
+                    <td class="setup-{{ perf.setup_type|lower|slice:':1' }}">{{ perf.setup_type }}</td>
                     <td>{{ perf.timeframe }}</td>
                     <td>{{ perf.total_trades }}</td>
-                    <td>{{ perf.success_rate }}%</td>
+                    <td>
+                        <div style="width: 100px; background: #eee; height: 10px; border-radius: 5px;">
+                            <div style="width: {{ perf.success_rate }}%; background: #28a745; height: 10px; border-radius: 5px;"></div>
+                        </div>
+                        {{ perf.success_rate }}%
+                    </td>
+                    <td>${{ perf.expected_value|floatformat:2 }}</td>
+                    <td style="font-weight: bold;">${{ perf.total_pnl }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
-
-<div class="module" style="margin-top: 20px;">
-    <h2>Recent Orders</h2>
-    <table style="width: 100%;">
-        <thead>
-            <tr><th>Time</th><th>Order ID</th><th>Symbol</th><th>Side</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-            {% for order in recent_orders %}
-            <tr>
-                <td>{{ order.created_at|date:"H:i:s" }}</td>
-                <td>{{ order.client_order_id }}</td>
-                <td>{{ order.instrument.symbol }}</td>
-                <td>{{ order.side }}</td>
-                <td>{{ order.state }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
 {% endblock %}
