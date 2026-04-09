@@ -181,14 +181,13 @@ docker-restart: ## Restart all services
 	@echo "$(GREEN)Restarting all services...$(NC)"
 	$(COMPOSE) restart
 
-docker-clean: ## Remove all containers, networks, and volumes
-	@echo "$(RED)WARNING: This will remove all containers, networks, and volumes!$(NC)"
+docker-clean: ## Remove all containers, networks, and volumes for this project
+	@echo "$(RED)WARNING: This will remove all containers, networks, and volumes for this project!$(NC)"
 	@read -p "Are you sure? [y/N] " -n 1 -r; \
 	echo ""; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		$(COMPOSE) down -v --remove-orphans; \
-		docker system prune -f; \
-		echo "$(GREEN)Docker cleanup complete$(NC)"; \
+		$(COMPOSE) down -v --rmi local --remove-orphans; \
+		echo "$(GREEN)Docker project cleanup complete$(NC)"; \
 	else \
 		echo "$(YELLOW)Operation cancelled$(NC)"; \
 	fi
