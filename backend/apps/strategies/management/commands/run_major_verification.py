@@ -51,7 +51,7 @@ class Command(BaseCommand):
 
         test_win_prob = 0.6
         risk_result = RiskManagementService.validate_trade(
-            broker_account=BrokerAccount.objects.get(broker_connection=conn),
+            broker_account=BrokerAccount.objects.filter(broker_connection=conn).first(),
             instrument=btcusd,
             grade=grading_result['grade'],
             price=Decimal('50000'),
@@ -65,7 +65,7 @@ class Command(BaseCommand):
         if risk_result['allowed']:
             order = await OMSService.place_order(
                 tenant=tenant, user=user,
-                broker_account=BrokerAccount.objects.get(broker_connection=conn),
+                broker_account=BrokerAccount.objects.filter(broker_connection=conn).first(),
                 instrument=btcusd, side='BUY',
                 quantity=risk_result['suggested_quantity'],
                 order_type='MARKET'

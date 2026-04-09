@@ -1,0 +1,47 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Backtest History - Sanusi OMS{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-2xl font-bold text-slate-800">Strategy Backtest History</h1>
+    <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 transition-colors">
+        <i class="fas fa-plus mr-2"></i> NEW BACKTEST
+    </button>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <table class="w-full text-left">
+        <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold">
+            <tr>
+                <th class="px-6 py-3">Date Run</th>
+                <th class="px-6 py-3">Instrument</th>
+                <th class="px-6 py-3">Period</th>
+                <th class="px-6 py-3 text-right">Trades</th>
+                <th class="px-6 py-3 text-right">Win Rate</th>
+                <th class="px-6 py-3 text-right">Total PnL</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50 text-sm">
+            {% for res in backtests %}
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4 font-mono text-xs text-slate-500">{{ res.created_at|date:"Y-m-d H:i" }}</td>
+                <td class="px-6 py-4 font-bold text-slate-900">{{ res.instrument.symbol }}</td>
+                <td class="px-6 py-4 text-slate-500 text-xs">{{ res.start_date|date:"M d" }} - {{ res.end_date|date:"M d, Y" }}</td>
+                <td class="px-6 py-4 text-right">{{ res.total_trades }}</td>
+                <td class="px-6 py-4 text-right font-medium">{{ res.win_rate }}%</td>
+                <td class="px-6 py-4 text-right font-bold {% if res.total_pnl >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                    ${{ res.total_pnl }}
+                </td>
+                <td class="px-6 py-4 text-right text-indigo-600">
+                    <a href="#" class="hover:text-indigo-800"><i class="fas fa-chart-area"></i></a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="px-6 py-12 text-center text-slate-400 italic">No backtest results found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

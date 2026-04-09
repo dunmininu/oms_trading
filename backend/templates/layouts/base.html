@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sanusi OMS Bot{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-600 p-2 rounded-lg">
+                        <i class="fas fa-chart-line text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">SANUSI <span class="text-indigo-400">OMS</span></span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4 uppercase text-xs font-semibold tracking-wider">
+                        <a href="{% url 'dashboard:index' %}" class="px-3 py-2 rounded-md hover:bg-slate-800">Dashboard</a>
+                        <a href="{% url 'dashboard:strategies' %}" class="px-3 py-2 rounded-md hover:bg-slate-800">Strategies</a>
+                        <a href="{% url 'dashboard:backtests' %}" class="px-3 py-2 rounded-md hover:bg-slate-800">Backtests</a>
+                        <a href="/admin/" class="px-3 py-2 rounded-md hover:bg-slate-800 text-slate-400">Settings</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs text-slate-400 uppercase font-bold">System Status</p>
+                        <div class="flex items-center justify-end space-x-1">
+                            <span class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                            <span class="text-[10px] font-mono">LIVE_OPS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-20 border-t border-slate-200 py-8 text-center text-slate-400 text-xs">
+        &copy; 2026 Sanusi OMS Bot. Institutional Grade Quantitative Infrastructure.
+    </footer>
+</body>
+</html>
