@@ -2,28 +2,29 @@
 WebSocket-based SDK for interacting with the Deriv API.
 """
 
-import asyncio
 import json
 import logging
+from collections.abc import Callable
+
 import websockets
-from typing import Dict, Any, Optional, Callable
 
 logger = logging.getLogger(__name__)
+
 
 class DerivClient:
     """
     Client for Deriv API (Synthetic Indices).
     """
 
-    URL = "wss://ws.binaryws.com/websockets/v3?app_id=1089" # Default demo app_id
+    URL = "wss://ws.binaryws.com/websockets/v3?app_id=1089"  # Default demo app_id
 
-    def __init__(self, token: str, app_id: Optional[str] = None):
+    def __init__(self, token: str, app_id: str | None = None):
         self.token = token
         if app_id:
             self.URL = f"wss://ws.binaryws.com/websockets/v3?app_id={app_id}"
         self.ws = None
         self.is_authenticated = False
-        self._callbacks: Dict[str, Callable] = {}
+        self._callbacks: dict[str, Callable] = {}
 
     async def connect(self):
         """Connect to Deriv WebSocket."""
@@ -77,8 +78,8 @@ class DerivClient:
                 "currency": "USD",
                 "duration": 1,
                 "duration_unit": "m",
-                "symbol": symbol
-            }
+                "symbol": symbol,
+            },
         }
         await self.ws.send(json.dumps(request))
         response = await self.ws.recv()

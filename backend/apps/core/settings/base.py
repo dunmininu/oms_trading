@@ -5,10 +5,9 @@ This file contains common settings for all environments.
 For environment-specific settings, see dev.py, prod.py, and test.py.
 """
 
-import os
 import sys
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
 import environ
 
@@ -63,12 +62,14 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "corsheaders",
     "django_extensions",
+    "django_celery_beat",
+    "django_celery_results",
 ]
 
 LOCAL_APPS = [
     "apps.core",
     "apps.accounts",
-    "apps.tenants", 
+    "apps.tenants",
     "apps.brokers",
     "apps.marketdata",
     "apps.oms",
@@ -372,8 +373,8 @@ IB_CONFIG = {
 # Risk Management Configuration
 RISK_CONFIG = {
     "MAX_POSITION_SIZE": 1000000,  # $1M default
-    "MAX_ORDER_SIZE": 100000,     # $100K default
-    "MAX_DAILY_LOSS": 50000,      # $50K default
+    "MAX_ORDER_SIZE": 100000,  # $100K default
+    "MAX_DAILY_LOSS": 50000,  # $50K default
     "MAX_ORDERS_PER_MINUTE": 60,
     "ENABLE_PRE_TRADE_CHECKS": True,
     "ENABLE_POSITION_LIMITS": True,
@@ -431,9 +432,9 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@omstrading.com")
 SENTRY_DSN = env("SENTRY_DSN")
 if SENTRY_DSN:
     import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.celery import CeleryIntegration
-    
+    from sentry_sdk.integrations.django import DjangoIntegration
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[

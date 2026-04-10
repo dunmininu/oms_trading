@@ -2,20 +2,21 @@
 Enhanced Interactive Brokers client using ib_insync.
 """
 
-import asyncio
 import logging
-from typing import Optional, List, Callable, Any
-from ib_insync import IB, Contract, Order, Stock, Forex, Crypto, Ticker, Fill
+from typing import Any
+
 import eventkit as ek
+from ib_insync import IB, Contract, Fill, Order, Ticker
 
 logger = logging.getLogger(__name__)
+
 
 class IBClient:
     """
     Enhanced IB client with improved connection management and event handling.
     """
 
-    def __init__(self, host: str = '127.0.0.1', port: int = 7497, client_id: int = 1):
+    def __init__(self, host: str = "127.0.0.1", port: int = 7497, client_id: int = 1):
         self.host = host
         self.port = port
         self.client_id = client_id
@@ -42,7 +43,9 @@ class IBClient:
     async def connect(self) -> bool:
         """Connect to IB Gateway/TWS."""
         try:
-            logger.info(f"Connecting to IB at {self.host}:{self.port} with client_id {self.client_id}")
+            logger.info(
+                f"Connecting to IB at {self.host}:{self.port} with client_id {self.client_id}"
+            )
             await self.ib.connectAsync(self.host, self.port, self.client_id)
             return True
         except Exception as e:
@@ -80,7 +83,7 @@ class IBClient:
         logger.info(f"Execution Details: {fill.execution.execId}")
         self.exec_details_event.emit(trade, fill)
 
-    def _on_pending_tickers(self, tickers: List[Ticker]):
+    def _on_pending_tickers(self, tickers: list[Ticker]):
         self.pending_tickers_event.emit(tickers)
 
     # Utilities
@@ -96,12 +99,28 @@ class IBClient:
         """Cancel an order."""
         return self.ib.cancelOrder(order)
 
-    async def req_historical_data(self, contract: Contract, endDateTime: str, durationStr: str, barSizeSetting: str, whatToShow: str, useRTH: bool):
+    async def req_historical_data(
+        self,
+        contract: Contract,
+        endDateTime: str,
+        durationStr: str,
+        barSizeSetting: str,
+        whatToShow: str,
+        useRTH: bool,
+    ):
         """Request historical data."""
         return await self.ib.reqHistoricalDataAsync(
             contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH
         )
 
-    def req_mkt_data(self, contract: Contract, genericTickList: str = '', snapshot: bool = False, regulatorySnapshot: bool = False):
+    def req_mkt_data(
+        self,
+        contract: Contract,
+        genericTickList: str = "",
+        snapshot: bool = False,
+        regulatorySnapshot: bool = False,
+    ):
         """Request real-time market data."""
-        return self.ib.reqMktData(contract, genericTickList, snapshot, regulatorySnapshot)
+        return self.ib.reqMktData(
+            contract, genericTickList, snapshot, regulatorySnapshot
+        )

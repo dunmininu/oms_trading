@@ -2,23 +2,25 @@
 Quantitative analysis services including Mean Reversion, Momentum, and Black-Scholes.
 """
 
-import math
 import logging
-import pandas as pd
+import math
+from typing import Any
+
 import numpy as np
-from typing import Dict, Any, List
-from decimal import Decimal
+import pandas as pd
 from scipy.stats import norm
+
 from apps.marketdata.models import HistoricalData
 from apps.oms.models import Instrument
 
 logger = logging.getLogger(__name__)
 
+
 class QuantService:
     """Service for quantitative models using vectorized calculations."""
 
     @classmethod
-    def calculate_rsi(cls, prices: List[float], period: int = 14) -> float:
+    def calculate_rsi(cls, prices: list[float], period: int = 14) -> float:
         """Calculate RSI using Pandas for vectorized operations."""
         if len(prices) <= period:
             return 50.0
@@ -36,7 +38,7 @@ class QuantService:
         return float(val) if not np.isnan(val) else 50.0
 
     @classmethod
-    def calculate_z_score(cls, prices: List[float], period: int = 20) -> float:
+    def calculate_z_score(cls, prices: list[float], period: int = 20) -> float:
         """Calculate Z-Score using Pandas."""
         if len(prices) < period:
             return 0.0
@@ -57,7 +59,7 @@ class QuantService:
         T: float,
         r: float,
         sigma: float,
-        option_type: str = 'CALL'
+        option_type: str = "CALL",
     ) -> float:
         """
         Calculate Black-Scholes option price.
@@ -68,10 +70,10 @@ class QuantService:
         sigma: Volatility
         """
         try:
-            d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
+            d1 = (math.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
             d2 = d1 - sigma * math.sqrt(T)
 
-            if option_type == 'CALL':
+            if option_type == "CALL":
                 return S * norm.cdf(d1) - K * math.exp(-r * T) * norm.cdf(d2)
             else:
                 return K * math.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
@@ -80,38 +82,36 @@ class QuantService:
             return 0.0
 
     @classmethod
-    def get_market_regime(cls, instrument: Instrument, interval: str) -> Dict[str, Any]:
+    def get_market_regime(cls, instrument: Instrument, interval: str) -> dict[str, Any]:
         """Determine market regime using RSI and Z-Score."""
         bars = HistoricalData.objects.filter(
-            instrument=instrument,
-            interval=interval,
-            data_type='OHLC'
-        ).order_by('-start_time')[:50]
+            instrument=instrument, interval=interval, data_type="OHLC"
+        ).order_by("-start_time")[:50]
 
         if not bars:
-            return {'rsi': 50, 'z_score': 0, 'regime': 'NEUTRAL'}
+            return {"rsi": 50, "z_score": 0, "regime": "NEUTRAL"}
 
         prices = [float(b.close_price) for b in reversed(bars)]
         rsi = cls.calculate_rsi(prices)
         z_score = cls.calculate_z_score(prices)
 
-        regime = 'NEUTRAL'
-        if rsi > 70: regime = 'OVERBOUGHT'
-        elif rsi < 30: regime = 'OVERSOLD'
+        regime = "NEUTRAL"
+        if rsi > 70:
+            regime = "OVERBOUGHT"
+        elif rsi < 30:
+            regime = "OVERSOLD"
 
-        return {
-            'rsi': rsi,
-            'z_score': z_score,
-            'regime': regime
-        }
+        return {"rsi": rsi, "z_score": z_score, "regime": regime}
 
     @classmethod
-    def calculate_indicators(cls, df_bars: pd.DataFrame) -> Dict[str, Any]:
+    def calculate_indicators(cls, df_bars: pd.DataFrame) -> dict[str, Any]:
         """Calculates quantitative indicators for a given set of bars (backtest helper)."""
-        prices = df_bars['close'].astype(float).tolist()
+        prices = df_bars["close"].astype(float).tolist()
         rsi = cls.calculate_rsi(prices)
         z_score = cls.calculate_z_score(prices)
-        regime = 'NEUTRAL'
-        if rsi > 70: regime = 'OVERBOUGHT'
-        elif rsi < 30: regime = 'OVERSOLD'
-        return {'rsi': rsi, 'z_score': z_score, 'regime': regime}
+        regime = "NEUTRAL"
+        if rsi > 70:
+            regime = "OVERBOUGHT"
+        elif rsi < 30:
+            regime = "OVERSOLD"
+        return {"rsi": rsi, "z_score": z_score, "regime": regime}

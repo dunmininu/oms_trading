@@ -25,7 +25,7 @@ The OMS Trading System consists of the following Docker services:
 - Docker Desktop 20.10+
 - Docker Compose 2.0+
 - At least 8GB RAM available
-- Ports 8000, 5433, 6379, 7497 available
+- Ports 8010, 5434, 6380, 7498 available
 
 ### Development Environment
 ```bash
@@ -106,7 +106,7 @@ postgres:
 **Access:**
 ```bash
 # Connect from host
-psql -h localhost -p 5433 -U postgres -d oms_trading_dev
+psql -h localhost -p 5434 -U postgres -d oms_trading_dev
 
 # Connect from container
 docker exec -it oms_postgres psql -U postgres -d oms_trading_dev
@@ -165,7 +165,7 @@ ib-gateway:
 **VNC Access:**
 ```bash
 # Connect with VNC client
-vncviewer localhost:5900
+vncviewer localhost:5901
 # Password: oms123 (or VNC_PASSWORD from .env)
 ```
 
@@ -258,6 +258,7 @@ flower:
   command: celery -A apps.core flower --port=5555
   ports:
     - "5555:5555"
+    - "5556:5555"
   environment:
     FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-flower123}
 ```
@@ -269,7 +270,7 @@ flower:
 - Worker statistics
 
 **Access:**
-- URL: http://localhost:5555
+- URL: http://localhost:5556
 - Username: admin (or FLOWER_USER)
 - Password: flower123 (or FLOWER_PASSWORD)
 
@@ -386,7 +387,7 @@ docker stats
 #### 1. Port Conflicts
 ```bash
 # Check what's using a port
-lsof -i :8000
+lsof -i :8010
 
 # Change port in docker-compose.yml
 ports:

@@ -2,18 +2,14 @@
 Main Django Ninja API configuration.
 """
 
-from ninja import NinjaAPI
-from ninja.security import HttpBearer
-from django.conf import settings
-from django.http import HttpRequest
-from typing import Optional
 import time
 
-from .middleware import TenantMiddleware, RateLimitMiddleware
-from .exceptions import APIExceptionHandler
-from .schemas import ErrorResponse
-from .v1.auth import AuthBearer
+from django.conf import settings
+from ninja import NinjaAPI
 
+from .exceptions import APIExceptionHandler
+from .v1 import auth, brokers, events, marketdata, oms, strategies, system, tenants
+from .v1.auth import AuthBearer
 
 # Main API instance
 api = NinjaAPI(
@@ -34,7 +30,6 @@ api.add_exception_handler(Exception, APIExceptionHandler.handle_exception)
 # TenantMiddleware and RateLimitMiddleware are configured in Django settings
 
 # Include app-specific API routes
-from .v1 import auth, tenants, brokers, marketdata, oms, strategies, events, system
 
 # Register v1 API routes
 api.add_router("/v1/auth/", auth.router, tags=["Authentication"])
@@ -57,15 +52,11 @@ def health_check(request):
 @api.get("/health/ready", tags=["System"])
 def health_ready(request):
     """Readiness probe endpoint for Kubernetes/load balancers."""
-    from django.db import connection
     from django.core.cache import cache
-    
-    checks = {
-        "database": False,
-        "cache": False,
-        "overall": False
-    }
-    
+    from django.db import connection
+
+    checks = {"database": False, "cache": False, "overall": False}
+
     # Check database connectivity
     try:
         with connection.cursor() as cursor:
@@ -73,7 +64,7 @@ def health_ready(request):
             checks["database"] = True
     except Exception:
         checks["database"] = False
-    
+
     # Check cache connectivity
     try:
         cache.set("health_check", "ok", 10)
@@ -81,17 +72,17 @@ def health_ready(request):
         checks["cache"] = True
     except Exception:
         checks["cache"] = False
-    
+
     # Overall health
     checks["overall"] = all([checks["database"], checks["cache"]])
-    
+
     status = "ready" if checks["overall"] else "not_ready"
-    
+
     return {
         "status": status,
         "service": "OMS Trading API",
         "timestamp": time.time(),
-        "checks": checks
+        "checks": checks,
     }
 
 
@@ -99,7 +90,7 @@ def health_ready(request):
 def version_info(request):
     """Get detailed version information."""
     import platform
-    
+
     return {
         "service": "OMS Trading API",
         "version": "1.0.0",
@@ -107,7 +98,7 @@ def version_info(request):
         "git_commit": "unknown",  # TODO: Get from git
         "python_version": platform.python_version(),
         "django_version": "5.1.11",
-        "environment": getattr(settings, 'DJANGO_SETTINGS_MODULE', 'unknown')
+        "environment": getattr(settings, "DJANGO_SETTINGS_MODULE", "unknown"),
     }
 
 
@@ -119,5 +110,5 @@ def root(request):
         "service": "OMS Trading API",
         "version": "1.0.0",
         "documentation": "/docs",
-        "openapi": "/openapi.json"
+        "openapi": "/openapi.json",
     }

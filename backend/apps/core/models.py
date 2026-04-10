@@ -3,8 +3,7 @@ Core models and mixins for OMS Trading system.
 """
 
 import uuid
-from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
+from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
@@ -12,44 +11,42 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-if TYPE_CHECKING:
-    from django.db.models.manager import Manager
-
 
 class BaseModel(models.Model):
     """Base model with common fields for all models."""
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
     is_active = models.BooleanField(default=True, db_index=True)
-    
+
     class Meta:
         abstract = True
-        ordering = ['-created_at']
-    
+        ordering = ["-created_at"]
+
     def __str__(self):
         return f"{self.__class__.__name__}({self.id})"
 
 
 class TenantAwareModel(BaseModel):
     """Base model for tenant-scoped models."""
-    
+
     tenant = models.ForeignKey(
-        'tenants.Tenant',
+        "tenants.Tenant",
         on_delete=models.CASCADE,
-        related_name='%(class)s_set',
+        related_name="%(class)s_set",
         db_index=True,
         null=True,  # Allow null for core models
-        blank=True
+        blank=True,
     )
-    
+
     class Meta:
         abstract = True
         indexes = [
-            models.Index(fields=['tenant', 'created_at']),
-            models.Index(fields=['tenant', 'is_active']),
+            models.Index(fields=["tenant", "created_at"]),
+            models.Index(fields=["tenant", "is_active"]),
         ]
+
 
 class UserManager(BaseUserManager):
     """Custom manager for User model."""
@@ -57,7 +54,7 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         """Create and save a regular user with the given email and password."""
         if not email:
-            raise ValueError(_('The Email field must be set'))
+            raise ValueError(_("The Email field must be set"))
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -66,96 +63,95 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None, **extra_fields):
         """Create and save a superuser with the given email and password."""
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
 
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError(_('Superuser must have is_staff=True.'))
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError(_('Superuser must have is_superuser=True.'))
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError(_("Superuser must have is_staff=True."))
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError(_("Superuser must have is_superuser=True."))
 
         return self.create_user(email, password, **extra_fields)
 
 
 class User(AbstractUser, BaseModel):
     """Custom user model with UUID primary key."""
-    
+
     # Override the default id field
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    
+
     # Remove username field, use email instead
     username = None
-    email = models.EmailField(_('email address'), unique=True, db_index=True)
-    
+    email = models.EmailField(_("email address"), unique=True, db_index=True)
+
     # Additional fields
     phone_number = models.CharField(max_length=20, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     profile_picture = models.URLField(blank=True)
 
     # Profile fields
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     bio = models.TextField(blank=True, max_length=500)
-    timezone = models.CharField(max_length=50, default='UTC')
-    language = models.CharField(max_length=10, default='en')
+    timezone = models.CharField(max_length=50, default="UTC")
+    language = models.CharField(max_length=10, default="en")
 
     # Security fields
     last_password_change = models.DateTimeField(blank=True, null=True)
     failed_login_attempts = models.PositiveIntegerField(default=0)
     locked_until = models.DateTimeField(blank=True, null=True)
-    
+
     # Email verification
     email_verified = models.BooleanField(default=False)
     email_verification_token = models.UUIDField(default=uuid.uuid4, editable=False)
     email_verification_expires = models.DateTimeField(null=True, blank=True)
     two_factor_enabled = models.BooleanField(default=False)
 
-    
     # Password reset
     password_reset_token = models.UUIDField(default=uuid.uuid4, editable=False)
     password_reset_expires = models.DateTimeField(null=True, blank=True)
-    
+
     # Two-factor authentication
     two_factor_enabled = models.BooleanField(default=False)
     two_factor_secret = models.CharField(max_length=32, blank=True)
-    
+
     # Last activity tracking
     last_activity = models.DateTimeField(null=True, blank=True)
     last_ip_address = models.GenericIPAddressField(null=True, blank=True)
-    
+
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
-    
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name", "last_name"]
+
     class Meta:
-        db_table = 'core_user'
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
+        db_table = "core_user"
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
         indexes = [
-            models.Index(fields=['email']),
-            models.Index(fields=['is_active']),
-            models.Index(fields=['created_at']),
+            models.Index(fields=["email"]),
+            models.Index(fields=["is_active"]),
+            models.Index(fields=["created_at"]),
         ]
-    
+
     def __str__(self):
         return self.email
-    
+
     def get_full_name(self):
         """Return the first_name plus the last_name, with a space in between."""
-        full_name = f'{self.first_name} {self.last_name}'.strip()
+        full_name = f"{self.first_name} {self.last_name}".strip()
         return full_name or self.email
-    
+
     def get_short_name(self):
         """Return the short name for the user."""
         return self.first_name or self.email
-    
+
     def clean(self):
         """Validate the model."""
         super().clean()
         if self.date_of_birth and self.date_of_birth > timezone.now().date():
-            raise ValidationError(_('Date of birth cannot be in the future.'))
-    
+            raise ValidationError(_("Date of birth cannot be in the future."))
+
     def save(self, *args, **kwargs):
         """Override save to ensure email is lowercase."""
         if self.email:
@@ -164,17 +160,15 @@ class User(AbstractUser, BaseModel):
 
     def is_locked(self):
         """Check if user account is locked."""
-        if self.locked_until and self.locked_until > timezone.now():
-            return True
-        return False
-    
+        return bool(self.locked_until and self.locked_until > timezone.now())
+
     def increment_failed_login(self):
         """Increment failed login attempts."""
         self.failed_login_attempts += 1
         if self.failed_login_attempts >= 5:  # Lock after 5 failed attempts
             self.locked_until = timezone.now() + timedelta(minutes=30)
         self.save()
-    
+
     def reset_failed_login(self):
         """Reset failed login attempts."""
         self.failed_login_attempts = 0
@@ -184,26 +178,26 @@ class User(AbstractUser, BaseModel):
 
 class AuditLog(BaseModel):
     """Audit log for tracking all system activities."""
-    
+
     ACTION_CHOICES = [
-        ('CREATE', 'Create'),
-        ('UPDATE', 'Update'),
-        ('DELETE', 'Delete'),
-        ('LOGIN', 'Login'),
-        ('LOGOUT', 'Logout'),
-        ('API_CALL', 'API Call'),
-        ('ORDER_PLACE', 'Order Place'),
-        ('ORDER_CANCEL', 'Order Cancel'),
-        ('ORDER_MODIFY', 'Order Modify'),
-        ('EXECUTION', 'Execution'),
-        ('POSITION_CHANGE', 'Position Change'),
-        ('RISK_CHECK', 'Risk Check'),
-        ('STRATEGY_START', 'Strategy Start'),
-        ('STRATEGY_STOP', 'Strategy Stop'),
-        ('BROKER_CONNECT', 'Broker Connect'),
-        ('BROKER_DISCONNECT', 'Broker Disconnect'),
+        ("CREATE", "Create"),
+        ("UPDATE", "Update"),
+        ("DELETE", "Delete"),
+        ("LOGIN", "Login"),
+        ("LOGOUT", "Logout"),
+        ("API_CALL", "API Call"),
+        ("ORDER_PLACE", "Order Place"),
+        ("ORDER_CANCEL", "Order Cancel"),
+        ("ORDER_MODIFY", "Order Modify"),
+        ("EXECUTION", "Execution"),
+        ("POSITION_CHANGE", "Position Change"),
+        ("RISK_CHECK", "Risk Check"),
+        ("STRATEGY_START", "Strategy Start"),
+        ("STRATEGY_STOP", "Strategy Stop"),
+        ("BROKER_CONNECT", "Broker Connect"),
+        ("BROKER_DISCONNECT", "Broker Disconnect"),
     ]
-    
+
     # Tenant is optional for system-level audit logs
     tenant_id = models.UUIDField(null=True, blank=True, db_index=True)
     user = models.ForeignKey(
@@ -211,7 +205,7 @@ class AuditLog(BaseModel):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='audit_logs'
+        related_name="audit_logs",
     )
     action = models.CharField(max_length=50, choices=ACTION_CHOICES, db_index=True)
     resource_type = models.CharField(max_length=100, db_index=True)
@@ -223,45 +217,47 @@ class AuditLog(BaseModel):
     session_id = models.CharField(max_length=100, blank=True)
     request_id = models.CharField(max_length=100, blank=True)
     metadata = models.JSONField(null=True, blank=True)
-    
+
     class Meta:
-        db_table = 'core_audit_log'
-        verbose_name = _('audit log')
-        verbose_name_plural = _('audit logs')
+        db_table = "core_audit_log"
+        verbose_name = _("audit log")
+        verbose_name_plural = _("audit logs")
         indexes = [
-            models.Index(fields=['tenant_id', 'action']),
-            models.Index(fields=['tenant_id', 'resource_type']),
-            models.Index(fields=['tenant_id', 'created_at']),
-            models.Index(fields=['user', 'created_at']),
-            models.Index(fields=['action', 'created_at']),
+            models.Index(fields=["tenant_id", "action"]),
+            models.Index(fields=["tenant_id", "resource_type"]),
+            models.Index(fields=["tenant_id", "created_at"]),
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["action", "created_at"]),
         ]
-    
+
     def __str__(self):
         return f"{self.action} on {self.resource_type} {self.resource_id}"
 
 
 class SystemConfiguration(BaseModel):
     """System-wide configuration settings."""
-    
+
     key = models.CharField(max_length=100, unique=True, db_index=True)
     value = models.JSONField()
     description = models.TextField(blank=True)
-    category = models.CharField(max_length=50, default='general', db_index=True)
-    is_public = models.BooleanField(default=False, help_text='Whether this config is visible to all users')
-    
+    category = models.CharField(max_length=50, default="general", db_index=True)
+    is_public = models.BooleanField(
+        default=False, help_text="Whether this config is visible to all users"
+    )
+
     class Meta:
-        db_table = 'core_system_configuration'
-        verbose_name = _('system configuration')
-        verbose_name_plural = _('system configurations')
+        db_table = "core_system_configuration"
+        verbose_name = _("system configuration")
+        verbose_name_plural = _("system configurations")
         indexes = [
-            models.Index(fields=['key']),
-            models.Index(fields=['category']),
-            models.Index(fields=['is_public']),
+            models.Index(fields=["key"]),
+            models.Index(fields=["category"]),
+            models.Index(fields=["is_public"]),
         ]
-    
+
     def __str__(self):
         return f"{self.key}: {self.value}"
-    
+
     @classmethod
     def get_value(cls, key: str, default=None):
         """Get configuration value by key."""
@@ -270,60 +266,64 @@ class SystemConfiguration(BaseModel):
             return config.value
         except cls.DoesNotExist:
             return default
-    
+
     @classmethod
-    def set_value(cls, key: str, value, description='', category='general', is_public=False):
+    def set_value(
+        cls, key: str, value, description="", category="general", is_public=False
+    ):
         """Set configuration value by key."""
         config, created = cls.objects.update_or_create(
             key=key,
             defaults={
-                'value': value,
-                'description': description,
-                'category': category,
-                'is_public': is_public,
-                'is_active': True,
-            }
+                "value": value,
+                "description": description,
+                "category": category,
+                "is_public": is_public,
+                "is_active": True,
+            },
         )
         return config
 
 
 class HealthCheck(BaseModel):
     """Health check records for monitoring."""
-    
+
     STATUS_CHOICES = [
-        ('SUCCESS', 'Success'),
-        ('WARNING', 'Warning'),
-        ('ERROR', 'Error'),
-        ('CRITICAL', 'Critical'),
+        ("SUCCESS", "Success"),
+        ("WARNING", "Warning"),
+        ("ERROR", "Error"),
+        ("CRITICAL", "Critical"),
     ]
-    
+
     COMPONENT_CHOICES = [
-        ('DATABASE', 'Database'),
-        ('REDIS', 'Redis'),
-        ('CELERY', 'Celery'),
-        ('IB_CONNECTOR', 'IB Connector'),
-        ('MARKET_DATA', 'Market Data'),
-        ('RISK_ENGINE', 'Risk Engine'),
-        ('ORDER_ROUTER', 'Order Router'),
-        ('WEBHOOK_SENDER', 'Webhook Sender'),
+        ("DATABASE", "Database"),
+        ("REDIS", "Redis"),
+        ("CELERY", "Celery"),
+        ("IB_CONNECTOR", "IB Connector"),
+        ("MARKET_DATA", "Market Data"),
+        ("RISK_ENGINE", "Risk Engine"),
+        ("ORDER_ROUTER", "Order Router"),
+        ("WEBHOOK_SENDER", "Webhook Sender"),
     ]
-    
-    component = models.CharField(max_length=50, choices=COMPONENT_CHOICES, db_index=True)
+
+    component = models.CharField(
+        max_length=50, choices=COMPONENT_CHOICES, db_index=True
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, db_index=True)
     message = models.TextField()
     response_time_ms = models.IntegerField(null=True, blank=True)
     details = models.JSONField(null=True, blank=True)
     error_traceback = models.TextField(blank=True)
-    
+
     class Meta:
-        db_table = 'core_health_check'
-        verbose_name = _('health check')
-        verbose_name_plural = _('health checks')
+        db_table = "core_health_check"
+        verbose_name = _("health check")
+        verbose_name_plural = _("health checks")
         indexes = [
-            models.Index(fields=['component', 'status']),
-            models.Index(fields=['component', 'created_at']),
-            models.Index(fields=['status', 'created_at']),
+            models.Index(fields=["component", "status"]),
+            models.Index(fields=["component", "created_at"]),
+            models.Index(fields=["status", "created_at"]),
         ]
-    
+
     def __str__(self):
         return f"{self.component}: {self.status} - {self.message}"

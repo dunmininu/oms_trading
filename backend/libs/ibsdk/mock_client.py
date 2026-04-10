@@ -6,20 +6,30 @@ import asyncio
 import logging
 import random
 import uuid
-from typing import Optional, List, Any
+
 import eventkit as ek
-from ib_insync import Contract, Order, Ticker, Fill, Execution as IBExecution, CommissionReport
+from ib_insync import (
+    CommissionReport,
+    Contract,
+    Fill,
+    Order,
+)
+from ib_insync import (
+    Execution as IBExecution,
+)
 
 logger = logging.getLogger(__name__)
+
 
 class MockTrade:
     def __init__(self, contract, order):
         self.contract = contract
         self.order = order
-        self.orderStatus = type('Status', (), {'status': 'Submitted'})()
+        self.orderStatus = type("Status", (), {"status": "Submitted"})()
         self.fills = []
         self.statusEvent = ek.Event()
         self.fillEvent = ek.Event()
+
 
 class MockIB:
     def __init__(self):
@@ -35,14 +45,15 @@ class MockIB:
         self.connected = False
 
     def managedAccounts(self):
-        return ['MOCK12345']
+        return ["MOCK12345"]
+
 
 class MockIBClient:
     """
     Mock IB client that simulates connectivity and order execution.
     """
 
-    def __init__(self, host: str = '127.0.0.1', port: int = 7497, client_id: int = 1):
+    def __init__(self, host: str = "127.0.0.1", port: int = 7497, client_id: int = 1):
         self.host = host
         self.port = port
         self.client_id = client_id
@@ -75,7 +86,9 @@ class MockIBClient:
         return [contract]
 
     def place_order(self, contract: Contract, order: Order):
-        print(f"MOCK: Placing order {order.action} {order.totalQuantity} {contract.symbol}")
+        print(
+            f"MOCK: Placing order {order.action} {order.totalQuantity} {contract.symbol}"
+        )
 
         order.orderId = random.randint(10000, 99999)
         trade = MockTrade(contract, order)
@@ -90,18 +103,18 @@ class MockIBClient:
             await asyncio.sleep(0.5)
             print(f"MOCK: Simulating fill for {trade.contract.symbol}")
 
-            trade.orderStatus.status = 'Filled'
+            trade.orderStatus.status = "Filled"
 
             fill = Fill(
                 contract=trade.contract,
                 execution=IBExecution(
                     execId=f"exec-{uuid.uuid4().hex[:8]}",
                     shares=trade.order.totalQuantity,
-                    price=50000.0 if trade.contract.symbol == 'BTC' else 180.0,
-                    avgPrice=50000.0 if trade.contract.symbol == 'BTC' else 180.0
+                    price=50000.0 if trade.contract.symbol == "BTC" else 180.0,
+                    avgPrice=50000.0 if trade.contract.symbol == "BTC" else 180.0,
                 ),
                 commissionReport=CommissionReport(commission=1.0),
-                time=None
+                time=None,
             )
 
             trade.fills.append(fill)
@@ -117,22 +130,32 @@ class MockIBClient:
     def cancel_order(self, order: Order):
         pass
 
-    async def req_historical_data(self, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH):
-        from ib_insync import BarData
+    async def req_historical_data(
+        self, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH
+    ):
         from datetime import datetime, timedelta
+
+        from ib_insync import BarData
+
         bars = []
         now = datetime.now()
-        base_price = 50000.0 if contract.symbol == 'BTC' else 180.0
+        base_price = 50000.0 if contract.symbol == "BTC" else 180.0
         for i in range(100):
-            bars.append(BarData(
-                date=now - timedelta(minutes=15 * (100-i)),
-                open=base_price + random.uniform(-10, 10),
-                high=base_price + random.uniform(10, 20),
-                low=base_price + random.uniform(-20, -10),
-                close=base_price + random.uniform(-5, 5),
-                volume=100, average=base_price, barCount=10
-            ))
+            bars.append(
+                BarData(
+                    date=now - timedelta(minutes=15 * (100 - i)),
+                    open=base_price + random.uniform(-10, 10),
+                    high=base_price + random.uniform(10, 20),
+                    low=base_price + random.uniform(-20, -10),
+                    close=base_price + random.uniform(-5, 5),
+                    volume=100,
+                    average=base_price,
+                    barCount=10,
+                )
+            )
         return bars
 
-    def req_mkt_data(self, contract, genericTickList='', snapshot=False, regulatorySnapshot=False):
+    def req_mkt_data(
+        self, contract, genericTickList="", snapshot=False, regulatorySnapshot=False
+    ):
         return None

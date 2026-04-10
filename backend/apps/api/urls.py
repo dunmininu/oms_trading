@@ -3,6 +3,8 @@ URL configuration for the API app.
 """
 
 from django.urls import path, include
+from django.contrib import admin
+
 from .ninja_api import api
 from .views.dashboard import (
     DashboardIndexView, BacktestListView, StrategyListView,
@@ -21,6 +23,7 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path("", lambda r: redirect('dashboard:index')),
+    path("admin/", admin.site.urls),
     path("api/", api.urls),
     path("dashboard/", include(dashboard_urls)),
 ]

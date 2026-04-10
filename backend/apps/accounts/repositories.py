@@ -2,23 +2,24 @@
 Repository implementations for accounts app using DjangoRepository.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
 from apps.api.base import DjangoRepository
 from apps.core.models import User
+
 from .models import ApiKey
 
 
 class UserRepository(DjangoRepository[User]):
     """Repository for user data access operations."""
 
-    def get_by_email(self, email: str) -> Optional[User]:
+    def get_by_email(self, email: str) -> User | None:
         try:
             return self.model.objects.get(email=email)
         except self.model.DoesNotExist:
             return None
 
-    def get_by_username(self, username: str) -> Optional[User]:
+    def get_by_username(self, username: str) -> User | None:
         try:
             return self.model.objects.get(username=username)
         except self.model.DoesNotExist:
@@ -34,7 +35,7 @@ class UserRepository(DjangoRepository[User]):
 class ApiKeyRepository(DjangoRepository[ApiKey]):
     """Repository for API key operations."""
 
-    def get_active_by_hash(self, key_hash: str) -> Optional[ApiKey]:
+    def get_active_by_hash(self, key_hash: str) -> ApiKey | None:
         try:
             return self.model.objects.get(key_hash=key_hash, is_active=True)
         except self.model.DoesNotExist:
@@ -62,7 +63,7 @@ class ApiKeyRepository(DjangoRepository[ApiKey]):
         api_key.save(update_fields=["is_active", "updated_at"])
         return True
 
-    def create_with_key(self, data: Dict[str, Any]) -> ApiKey:
+    def create_with_key(self, data: dict[str, Any]) -> ApiKey:
         """Create API key using model's secure helper and return model instance.
 
         Expects: data with keys: tenant_id, user, name, scopes, expires_at (optional).
@@ -74,5 +75,3 @@ class ApiKeyRepository(DjangoRepository[ApiKey]):
             scopes=data.get("scopes") or [],
             expires_at=data.get("expires_at"),
         )
-
-

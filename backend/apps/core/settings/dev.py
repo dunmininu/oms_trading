@@ -18,8 +18,7 @@ INSTALLED_APPS += [  # noqa: F405
 ]
 
 # Development middleware
-MIDDLEWARE += [  # noqa: F405
-]
+MIDDLEWARE += []  # noqa: F405
 
 # Debug toolbar configuration
 DEBUG_TOOLBAR_CONFIG = {
@@ -82,28 +81,34 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/1")
 CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://localhost:6379/1")  # noqa: F405
 
 # Interactive Brokers settings for development
-IB_CONFIG.update({  # noqa: F405
-    "HOST": env("IB_HOST", default="127.0.0.1"),  # noqa: F405
-    "PORT": env("IB_PORT", default=7497),  # noqa: F405 # TWS paper trading port
-    "CLIENT_ID": env("IB_CLIENT_ID", default=1),  # noqa: F405
-    "READONLY": True,  # Paper trading mode
-    "ACCOUNT": env("IB_ACCOUNT", default="DU123456"),  # noqa: F405 # Paper account
-})
+IB_CONFIG.update(
+    {  # noqa: F405
+        "HOST": env("IB_HOST", default="127.0.0.1"),  # noqa: F405
+        "PORT": env("IB_PORT", default=7497),  # noqa: F405 # TWS paper trading port
+        "CLIENT_ID": env("IB_CLIENT_ID", default=1),  # noqa: F405
+        "READONLY": True,  # Paper trading mode
+        "ACCOUNT": env("IB_ACCOUNT", default="DU123456"),  # noqa: F405 # Paper account
+    }
+)
 
 # Risk management - more lenient for development
-RISK_CONFIG.update({  # noqa: F405
-    "MAX_POSITION_SIZE": 10000,  # $10K for development
-    "MAX_ORDER_SIZE": 1000,     # $1K for development
-    "MAX_DAILY_LOSS": 500,      # $500 for development
-    "MAX_ORDERS_PER_MINUTE": 10,
-})
+RISK_CONFIG.update(
+    {  # noqa: F405
+        "MAX_POSITION_SIZE": 10000,  # $10K for development
+        "MAX_ORDER_SIZE": 1000,  # $1K for development
+        "MAX_DAILY_LOSS": 500,  # $500 for development
+        "MAX_ORDERS_PER_MINUTE": 10,
+    }
+)
 
 # Strategy configuration for development
-STRATEGY_CONFIG.update({  # noqa: F405
-    "PAPER_TRADING_ONLY": True,  # Force paper trading in development
-    "ENABLE_SANDBOXING": False,  # Disable for easier debugging
-    "MAX_CONCURRENT_RUNS": 2,
-})
+STRATEGY_CONFIG.update(
+    {  # noqa: F405
+        "PAPER_TRADING_ONLY": True,  # Force paper trading in development
+        "ENABLE_SANDBOXING": False,  # Disable for easier debugging
+        "MAX_CONCURRENT_RUNS": 2,
+    }
+)
 
 # Development-specific logging
 LOGGING["handlers"]["console"]["level"] = "DEBUG"  # noqa: F405

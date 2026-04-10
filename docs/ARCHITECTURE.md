@@ -145,10 +145,10 @@ sequenceDiagram
 
     C->>API: POST /api/v1/orders
     Note over C,API: Idempotency-Key: uuid
-    
+
     API->>AUTH: Validate JWT/API Key
     AUTH-->>API: User + Tenant + Scopes
-    
+
     API->>DB: Check idempotency key
     alt Key exists
         DB-->>API: Return existing order
@@ -158,18 +158,18 @@ sequenceDiagram
         RISK->>DB: Fetch risk limits
         RISK->>DB: Check position limits
         RISK-->>API: Risk approval/rejection
-        
+
         alt Risk rejected
             API-->>C: 400 Bad Request
         else Risk approved
             API->>OMS: Create order (NEW state)
             OMS->>DB: Persist order + idempotency
             DB-->>OMS: Order ID
-            
+
             OMS->>IB: Route order to broker
             IB->>TWS: Submit order
             TWS-->>IB: Order accepted/rejected
-            
+
             alt Order accepted
                 IB->>OMS: Order status: ROUTED
                 OMS->>DB: Update order state
@@ -200,7 +200,7 @@ sequenceDiagram
     Note over IB,TWS: Connection lost
     IB->>IB: Detect disconnection
     IB->>EVENTS: Emit DisconnectionEvent
-    
+
     loop Reconnection attempts
         IB->>TWS: Attempt reconnection
         TWS-->>IB: Connection status
@@ -209,16 +209,16 @@ sequenceDiagram
         else Connection restored
             IB->>TWS: Request open orders
             TWS-->>IB: Open orders list
-            
+
             IB->>TWS: Request executions (last 24h)
             TWS-->>IB: Execution reports
-            
+
             IB->>TWS: Request positions
             TWS-->>IB: Position data
-            
+
             IB->>OMS: Reconcile orders
             OMS->>DB: Fetch pending orders
-            
+
             loop For each order
                 OMS->>OMS: Compare local vs TWS state
                 alt State mismatch
@@ -227,13 +227,13 @@ sequenceDiagram
                     OMS->>EVENTS: Emit OrderStateSync event
                 end
             end
-            
+
             IB->>OMS: Reconcile executions
             OMS->>DB: Store missing executions
-            
+
             IB->>OMS: Reconcile positions
             OMS->>DB: Update position snapshots
-            
+
             IB->>EVENTS: Emit ReconnectionComplete
         end
     end
@@ -255,11 +255,11 @@ sequenceDiagram
     C->>API: POST /api/v1/orders/{id}/cancel
     API->>AUTH: Validate permissions
     AUTH-->>API: Authorization result
-    
+
     API->>OMS: Request order cancellation
     OMS->>DB: Fetch order details
     DB-->>OMS: Order data
-    
+
     alt Order not cancellable
         OMS-->>API: Invalid state error
         API-->>C: 400 Bad Request
@@ -267,7 +267,7 @@ sequenceDiagram
         OMS->>IB: Send cancel request
         IB->>TWS: Cancel order
         TWS-->>IB: Cancel acknowledgment
-        
+
         alt Cancel successful
             IB->>OMS: Order status: CANCELED
             OMS->>DB: Update order state
@@ -296,24 +296,24 @@ sequenceDiagram
     C->>API: POST /api/v1/marketdata/subscribe
     API->>MARKET: Subscribe to symbol
     MARKET->>DB: Check subscription exists
-    
+
     alt New subscription
         MARKET->>IB: Request market data
         IB->>TWS: Subscribe to ticks
         TWS-->>IB: Subscription confirmed
         MARKET->>DB: Store subscription
     end
-    
+
     MARKET-->>API: Subscription confirmed
     API-->>C: 200 OK
-    
+
     Note over TWS,REDIS: Continuous tick flow
     loop Market hours
         TWS->>IB: Market tick data
         IB->>MARKET: Process tick
         MARKET->>REDIS: Cache latest price
         MARKET->>SSE: Broadcast to subscribers
-        
+
         Note over MARKET,DB: Periodic snapshots
         MARKET->>DB: Store tick snapshot (configurable interval)
     end
@@ -332,7 +332,7 @@ erDiagram
         timestamp updated_at
         boolean is_active
     }
-    
+
     USER {
         uuid id PK
         string email UK
@@ -344,7 +344,7 @@ erDiagram
         boolean is_active
         timestamp last_login
     }
-    
+
     MEMBERSHIP {
         uuid id PK
         uuid tenant_id FK
@@ -355,7 +355,7 @@ erDiagram
         timestamp updated_at
         boolean is_active
     }
-    
+
     API_KEY {
         uuid id PK
         uuid tenant_id FK
@@ -369,7 +369,7 @@ erDiagram
         timestamp last_used_at
         boolean is_active
     }
-    
+
     BROKER {
         uuid id PK
         string name
@@ -380,7 +380,7 @@ erDiagram
         timestamp updated_at
         boolean is_active
     }
-    
+
     BROKER_ACCOUNT {
         uuid id PK
         uuid tenant_id FK
@@ -392,7 +392,7 @@ erDiagram
         timestamp updated_at
         boolean is_active
     }
-    
+
     INSTRUMENT {
         uuid id PK
         string symbol UK
@@ -406,7 +406,7 @@ erDiagram
         timestamp updated_at
         boolean is_active
     }
-    
+
     ORDER {
         uuid id PK
         uuid tenant_id FK
@@ -428,7 +428,7 @@ erDiagram
         timestamp updated_at
         jsonb metadata
     }
-    
+
     EXECUTION {
         uuid id PK
         uuid tenant_id FK
@@ -441,7 +441,7 @@ erDiagram
         timestamp executed_at
         jsonb metadata
     }
-    
+
     POSITION {
         uuid id PK
         uuid tenant_id FK
@@ -454,7 +454,7 @@ erDiagram
         timestamp updated_at
         jsonb metadata
     }
-    
+
     PNL_SNAPSHOT {
         uuid id PK
         uuid tenant_id FK
@@ -466,7 +466,7 @@ erDiagram
         jsonb positions_snapshot
         timestamp created_at
     }
-    
+
     STRATEGY {
         uuid id PK
         uuid tenant_id FK
@@ -481,7 +481,7 @@ erDiagram
         timestamp updated_at
         boolean is_active
     }
-    
+
     STRATEGY_RUN {
         uuid id PK
         uuid strategy_id FK
@@ -494,7 +494,7 @@ erDiagram
         jsonb metrics
         string log_path
     }
-    
+
     RISK_LIMIT {
         uuid id PK
         uuid tenant_id FK
@@ -507,7 +507,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     COMPLIANCE_RULE {
         uuid id PK
         uuid tenant_id FK
@@ -517,7 +517,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     IDEMPOTENCY_KEY {
         uuid id PK
         uuid tenant_id FK
@@ -529,7 +529,7 @@ erDiagram
         timestamp created_at
         timestamp expires_at
     }
-    
+
     AUDIT_LOG {
         uuid id PK
         uuid tenant_id FK
@@ -543,7 +543,7 @@ erDiagram
         string user_agent
         timestamp created_at
     }
-    
+
     WEBHOOK_OUT {
         uuid id PK
         uuid tenant_id FK
@@ -555,7 +555,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     WEBHOOK_DELIVERY {
         uuid id PK
         uuid webhook_out_id FK
@@ -569,7 +569,7 @@ erDiagram
         timestamp created_at
         timestamp delivered_at
     }
-    
+
     MARKET_SUBSCRIPTION {
         uuid id PK
         uuid tenant_id FK
@@ -580,7 +580,7 @@ erDiagram
         timestamp updated_at
         boolean is_active
     }
-    
+
     TICK_DATA {
         uuid id PK
         uuid instrument_id FK
@@ -606,27 +606,27 @@ erDiagram
     TENANT ||--o{ AUDIT_LOG : has
     TENANT ||--o{ WEBHOOK_OUT : has
     TENANT ||--o{ MARKET_SUBSCRIPTION : has
-    
+
     USER ||--o{ MEMBERSHIP : belongs_to
     USER ||--o{ API_KEY : owns
     USER ||--o{ ORDER : creates
     USER ||--o{ STRATEGY : creates
-    
+
     BROKER ||--o{ BROKER_ACCOUNT : has
     BROKER_ACCOUNT ||--o{ ORDER : routed_to
     BROKER_ACCOUNT ||--o{ POSITION : held_in
     BROKER_ACCOUNT ||--o{ PNL_SNAPSHOT : belongs_to
     BROKER_ACCOUNT ||--o{ STRATEGY_RUN : uses
-    
+
     INSTRUMENT ||--o{ ORDER : for
     INSTRUMENT ||--o{ POSITION : of
     INSTRUMENT ||--o{ MARKET_SUBSCRIPTION : for
     INSTRUMENT ||--o{ TICK_DATA : for
-    
+
     ORDER ||--o{ EXECUTION : generates
     STRATEGY ||--o{ STRATEGY_RUN : has
     STRATEGY_RUN ||--o{ ORDER : creates
-    
+
     WEBHOOK_OUT ||--o{ WEBHOOK_DELIVERY : has
 ```
 

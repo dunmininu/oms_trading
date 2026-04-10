@@ -13,7 +13,19 @@ if [ -f "/opt/venv/bin/activate" ]; then
 fi
 
 # Change to backend directory
-cd /app/backend
+if [ -d "/app/backend" ]; then
+    cd /app/backend
+else
+    echo "ERROR: /app/backend directory not found!"
+    exit 1
+fi
+
+if [ ! -f "manage.py" ]; then
+    echo "ERROR: manage.py not found in $(pwd)!"
+    echo "Contents of $(pwd):"
+    ls -la
+    exit 1
+fi
 
 # Wait for database to be ready
 if [ -n "$DATABASE_URL" ]; then
@@ -22,40 +34,46 @@ echo "Waiting for database..."
 import os
 import time
 try:
-    import psycopg2
+    try:
+        import psycopg
+        connect_func = psycopg.connect
+    except ImportError:
+        import psycopg2
+        connect_func = psycopg2.connect
+
     from urllib.parse import urlparse
-    
+
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
         parsed = urlparse(database_url)
         max_attempts = 30
         attempt = 0
-        
+
         while attempt < max_attempts:
             try:
-                conn = psycopg2.connect(
+                conn = connect_func(
                     host=parsed.hostname,
                     port=parsed.port or 5432,
                     user=parsed.username,
                     password=parsed.password,
-                    database=parsed.path[1:] if parsed.path else 'postgres',
+                    dbname=parsed.path[1:] if parsed.path else 'postgres',
                     connect_timeout=5
                 )
                 conn.close()
                 print('Database is ready!')
                 break
-            except psycopg2.OperationalError:
+            except Exception as e:
                 attempt += 1
-                print(f'Database not ready, attempt {attempt}/{max_attempts}...')
+                print(f'Database not ready ({e}), attempt {attempt}/{max_attempts}...')
                 time.sleep(2)
-        
+
         if attempt >= max_attempts:
             print('Database connection failed after all attempts')
             exit(1)
     else:
         print('No DATABASE_URL provided, skipping database check')
 except ImportError:
-    print('psycopg2 not available, skipping database check')
+    print('psycopg not available, skipping database check')
     print('This may cause issues if database operations are required')
 "
 else
