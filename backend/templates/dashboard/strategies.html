@@ -1,0 +1,72 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Strategy Management - Sanusi OMS{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-2xl font-bold text-slate-800">Strategy Fleet</h1>
+    <div class="flex space-x-2">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="start_all">
+            <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-emerald-700 transition-colors">
+                <i class="fas fa-play mr-2"></i> START ALL
+            </button>
+        </form>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="stop_all">
+            <button type="submit" class="bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-700 transition-colors">
+                <i class="fas fa-stop mr-2"></i> STOP ALL
+            </button>
+        </form>
+        <button class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-300 transition-colors">
+            <i class="fas fa-plus mr-2"></i> NEW STRATEGY
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for strategy in strategies %}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+        <div class="p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-900">{{ strategy.name }}</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ strategy.strategy_type }}</p>
+                </div>
+                <span class="h-2 w-2 rounded-full {% if strategy.is_active %}bg-emerald-500 animate-pulse{% else %}bg-slate-300{% endif %}"></span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Total PnL</p>
+                    <p class="font-bold text-lg {% if strategy.total_pnl >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                        ${{ strategy.total_pnl }}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Win Rate</p>
+                    <p class="font-bold text-lg text-slate-800">{{ strategy.win_rate }}%</p>
+                </div>
+            </div>
+
+            <div class="flex items-center text-xs text-slate-500 mb-6">
+                <i class="fas fa-history mr-2"></i>
+                <span>Last run {{ strategy.updated_at|timesince }} ago</span>
+            </div>
+        </div>
+        <div class="mt-auto bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-between">
+            <button class="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">Configure</button>
+            <button class="text-[10px] font-bold {% if strategy.is_active %}text-rose-600{% else %}text-indigo-600{% endif %} uppercase tracking-widest">
+                {% if strategy.is_active %}STOP{% else %}START{% endif %}
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full py-20 text-center bg-white rounded-2xl border-2 border-dashed border-slate-200">
+        <p class="text-slate-400 italic">No strategies deployed in this tenant.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

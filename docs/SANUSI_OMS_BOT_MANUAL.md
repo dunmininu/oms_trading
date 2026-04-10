@@ -77,18 +77,21 @@ The bot uses a **Half-Kelly** model to determine the exact quantity to trade:
 
 ---
 
-## 5. Trading Command Center (The Quant Power Tool)
+## 5. Trading Command Center (Institutional Dashboard)
 
-The bot transforms the Django Admin into a high-density institutional dashboard:
-1.  Login to `http://localhost:8000/admin`.
-2.  Navigate to **Strategies** -> **Strategy Runs** -> **Dashboard**.
+The bot provides a dedicated, high-density dashboard for real-time monitoring and strategy management. Unlike standard retail platforms, this Command Center is built for professional quants using **Django Templates + Tailwind CSS**.
 
-### Key Power Tool Features:
--   **Active Exposure Monitor**: Real-time calculation of total market value and account-wide unrealized PnL.
--   **Setup Alpha Table**: Visualizes the win rate and expected value of every ICT setup type (FVG, Sweeps) across different timeframes.
--   **Bulk Strategy Control**: Start, stop, or reset the performance metrics of dozens of strategies simultaneously via the Strategy List view.
--   **Health Check Indicators**: Live visual cues (● ACTIVE / ○ INACTIVE) reflecting the heartbeat of background strategy tasks.
--   **Risk Heatmap**: Individual position risk percentages shown relative to account equity.
+### Accessing the Dashboard
+1.  Navigate to `http://localhost:8000/` (you will be redirected to `/dashboard/`).
+2.  **Authentication**: Use your institutional credentials (same as admin).
+
+### Key Features:
+-   **Real-Time Exposure**: Instantly view total market value and unrealized PnL across all instruments.
+-   **Setup Alpha Analytics**: A deep-dive table showing the performance (Win Rate, Net PnL) of every ICT setup type (FVG, Sweeps) across 15m and 4h timeframes.
+-   **Strategy Fleet Management**: A card-based interface to monitor every deployed strategy, its health status (Live Heartbeat), lifetime PnL, and win rates.
+-   **Backtest Registry**: A central repository of all historical backtest runs, allowing you to compare equity curves and performance metrics before going live.
+-   **Execution Audit**: A real-time log of the 10 most recent orders submitted to Interactive Brokers or Deriv.
+-   **Quant Fast Actions**: Direct UI buttons for emergency kill switches or re-syncing account balances.
 
 ---
 

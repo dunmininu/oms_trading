@@ -1,0 +1,187 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Trading Command Center - Sanusi OMS{% endblock %}
+
+{% block content %}
+<!-- Top Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Total Exposure</p>
+        <p class="text-2xl font-bold">${{ total_exposure|default:"0.00" }}</p>
+        <div class="mt-2 flex items-center text-xs text-slate-500">
+            <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600 mr-2">{{ active_positions.count }} Positions</span>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Unrealized PnL</p>
+        <p class="text-2xl font-bold {% if unrealized_pnl >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+            ${{ unrealized_pnl|default:"0.00" }}
+        </p>
+        <p class="text-xs text-slate-500 mt-2 font-medium">Live Market Value</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Avg Win Rate</p>
+        <div class="flex items-end justify-between">
+            <p class="text-2xl font-bold">{{ avg_win_rate|default:"0" }}%</p>
+            <div class="w-24 bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
+                <div class="bg-indigo-500 h-full" style="width: {{ avg_win_rate|default:0 }}%"></div>
+            </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-2 font-medium">Across all setup types</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Execution Velocity</p>
+        <p class="text-2xl font-bold">{{ recent_orders.count }}</p>
+        <p class="text-xs text-slate-500 mt-2 font-medium">Orders in last 24h</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column: Active Positions -->
+    <div class="lg:col-span-2 space-y-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center">
+                    <i class="fas fa-briefcase text-indigo-500 mr-2"></i>
+                    Real-Time Positions
+                </h3>
+                <span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full font-bold uppercase">Mock IB Connected</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold">
+                        <tr>
+                            <th class="px-6 py-3">Instrument</th>
+                            <th class="px-6 py-3 text-right">Quantity</th>
+                            <th class="px-6 py-3 text-right">Avg Cost</th>
+                            <th class="px-6 py-3 text-right">Market Price</th>
+                            <th class="px-6 py-3 text-right">PnL</th>
+                            <th class="px-6 py-3 text-right">Risk</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-sm">
+                        {% for pos in active_positions %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-bold text-slate-900">{{ pos.instrument.symbol }}</td>
+                            <td class="px-6 py-4 text-right font-mono">{{ pos.quantity }}</td>
+                            <td class="px-6 py-4 text-right text-slate-500">${{ pos.average_cost }}</td>
+                            <td class="px-6 py-4 text-right text-slate-900">${{ pos.market_price }}</td>
+                            <td class="px-6 py-4 text-right font-bold {% if pos.unrealized_pnl >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                                ${{ pos.unrealized_pnl }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold">{{ pos.risk_percentage|default:"0.0" }}%</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">No active exposure found in the Order Management System.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 flex items-center">
+                    <i class="fas fa-brain text-purple-500 mr-2"></i>
+                    Setup Performance Alpha
+                </h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold">
+                        <tr>
+                            <th class="px-6 py-3">Setup Type</th>
+                            <th class="px-6 py-3">Timeframe</th>
+                            <th class="px-6 py-3 text-right">Trades</th>
+                            <th class="px-6 py-3">Win Rate</th>
+                            <th class="px-6 py-3 text-right">Net PnL</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-sm">
+                        {% for perf in setup_performances %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="font-bold {% if perf.setup_type == 'FVG' %}text-indigo-600{% else %}text-purple-600{% endif %}">
+                                    {{ perf.setup_type }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-slate-500 text-xs">{{ perf.timeframe }}</td>
+                            <td class="px-6 py-4 text-right">{{ perf.total_trades }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <span class="mr-2 text-xs font-medium">{{ perf.success_rate }}%</span>
+                                    <div class="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                        <div class="bg-emerald-500 h-full" style="width: {{ perf.success_rate }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right font-bold text-slate-900">${{ perf.total_pnl }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: System Audit & Controls -->
+    <div class="space-y-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-50">
+                <h3 class="font-bold text-slate-800 flex items-center">
+                    <i class="fas fa-list-ul text-slate-400 mr-2"></i>
+                    Recent Activity
+                </h3>
+            </div>
+            <div class="p-0">
+                <ul class="divide-y divide-slate-50">
+                    {% for order in recent_orders %}
+                    <li class="px-6 py-4 hover:bg-slate-50 transition-colors">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-xs font-bold text-slate-900">{{ order.side }} {{ order.instrument.symbol }}</span>
+                            <span class="text-[10px] font-mono text-slate-400">{{ order.created_at|date:"H:i:s" }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] text-slate-500">{{ order.quantity }} units @ ${{ order.price|default:"MKT" }}</span>
+                            <span class="text-[10px] font-bold uppercase {% if order.state == 'FILLED' %}text-emerald-500{% else %}text-amber-500{% endif %}">
+                                {{ order.state }}
+                            </span>
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="px-6 py-10 text-center text-slate-400 italic text-xs">No recent orders recorded.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="px-6 py-3 bg-slate-50 text-center">
+                <a href="#" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest">View Full Audit Log</a>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 rounded-2xl shadow-lg border border-slate-800 overflow-hidden p-6 text-white">
+            <h3 class="font-bold mb-4 flex items-center text-sm">
+                <i class="fas fa-bolt text-amber-400 mr-2"></i>
+                Quant Fast Actions
+            </h3>
+            <div class="grid grid-cols-1 gap-3">
+                <button class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center justify-center">
+                    <i class="fas fa-play text-emerald-400 mr-2"></i> START ALL STRATEGIES
+                </button>
+                <button class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center justify-center">
+                    <i class="fas fa-stop text-rose-400 mr-2"></i> EMERGENCY KILL SWITCH
+                </button>
+                <button class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center justify-center">
+                    <i class="fas fa-sync text-indigo-400 mr-2"></i> RE-SYNC BALANCES
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

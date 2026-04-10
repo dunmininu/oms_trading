@@ -1,0 +1,97 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Broker Management - Sanusi OMS{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-2xl font-bold text-slate-800">Broker Connections</h1>
+    <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 transition-colors">
+        <i class="fas fa-plus mr-2"></i> ADD BROKER
+    </button>
+</div>
+
+<div class="grid grid-cols-1 gap-8">
+    <!-- Active Connections -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-50">
+            <h3 class="font-bold text-slate-800">Connection Status</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold">
+                    <tr>
+                        <th class="px-6 py-3">Broker</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">Host/Gateway</th>
+                        <th class="px-6 py-3">Last Heartbeat</th>
+                        <th class="px-6 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 text-sm">
+                    {% for conn in connections %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center mr-3">
+                                    <i class="fas fa-landmark text-slate-400 text-xs"></i>
+                                </div>
+                                <span class="font-bold text-slate-900">{{ conn.broker.display_name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                                {% if conn.status == 'CONNECTED' %}bg-emerald-50 text-emerald-700{% else %}bg-rose-50 text-rose-700{% endif %}">
+                                {{ conn.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-xs text-slate-500">{{ conn.host_override|default:conn.broker.host }}</td>
+                        <td class="px-6 py-4 text-slate-400 text-xs">{{ conn.updated_at|timesince }} ago</td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest">Reconnect</button>
+                            <button class="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">Edit</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="px-6 py-10 text-center text-slate-400 italic">No broker connections configured.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Linked Accounts -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-50">
+            <h3 class="font-bold text-slate-800">Trading Accounts</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold">
+                    <tr>
+                        <th class="px-6 py-3">Account ID</th>
+                        <th class="px-6 py-3">Type</th>
+                        <th class="px-6 py-3">Currency</th>
+                        <th class="px-6 py-3 text-right">Buying Power</th>
+                        <th class="px-6 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 text-sm">
+                    {% for acc in accounts %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-bold text-slate-900">{{ acc.account_number }}</td>
+                        <td class="px-6 py-4 text-slate-500 text-xs uppercase font-medium">{{ acc.account_type }}</td>
+                        <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ acc.currency }}</td>
+                        <td class="px-6 py-4 text-right font-bold text-slate-900">${{ acc.day_trading_buying_power|default:"---" }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest">Sync Balance</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="px-6 py-10 text-center text-slate-400 italic">No trading accounts linked.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
