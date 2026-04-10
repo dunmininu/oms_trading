@@ -2,15 +2,17 @@
 Broker schemas for Django Ninja API.
 """
 
-from ninja import Schema
-from typing import Optional, Dict, Any
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
+
+from ninja import Schema
 
 
 class BrokerConnectionSchema(Schema):
     """Schema for broker connection."""
-    id: Optional[str] = None
+
+    id: str | None = None
     broker_id: str
     connection_type: str
     status: str
@@ -18,90 +20,98 @@ class BrokerConnectionSchema(Schema):
     port: int
     client_id: int
     is_paper_trading: bool = False
-    last_heartbeat: Optional[datetime] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    last_heartbeat: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class BrokerConnectionCreateSchema(Schema):
     """Schema for creating broker connection."""
+
     broker_id: str
     connection_type: str
     host: str
     port: int
     client_id: int
     is_paper_trading: bool = False
-    credentials: Optional[Dict[str, Any]] = None
+    credentials: dict[str, Any] | None = None
 
 
 class BrokerConnectionUpdateSchema(Schema):
     """Schema for updating broker connection."""
-    host: Optional[str] = None
-    port: Optional[int] = None
-    client_id: Optional[int] = None
-    is_paper_trading: Optional[bool] = None
-    credentials: Optional[Dict[str, Any]] = None
+
+    host: str | None = None
+    port: int | None = None
+    client_id: int | None = None
+    is_paper_trading: bool | None = None
+    credentials: dict[str, Any] | None = None
 
 
 class BrokerAccountSchema(Schema):
     """Schema for broker account."""
-    id: Optional[str] = None
+
+    id: str | None = None
     broker_id: str
     account_number: str
     account_type: str
     currency: str
-    balance: Optional[Decimal] = None
-    buying_power: Optional[Decimal] = None
+    balance: Decimal | None = None
+    buying_power: Decimal | None = None
     is_active: bool = True
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class BrokerAccountCreateSchema(Schema):
     """Schema for creating broker account."""
+
     broker_id: str
     account_number: str
     account_type: str
     currency: str
-    credentials: Optional[Dict[str, Any]] = None
+    credentials: dict[str, Any] | None = None
 
 
 class BrokerLogSchema(Schema):
     """Schema for broker log entry."""
-    id: Optional[str] = None
+
+    id: str | None = None
     broker_id: str
     level: str
     message: str
-    details: Optional[Dict[str, Any]] = None
-    timestamp: Optional[datetime] = None
+    details: dict[str, Any] | None = None
+    timestamp: datetime | None = None
 
 
 class BrokerCreateSchema(Schema):
     """Schema for creating a broker."""
+
     name: str
     broker_type: str
-    description: Optional[str] = None
+    description: str | None = None
     is_active: bool = True
-    config: Optional[Dict[str, Any]] = None
+    config: dict[str, Any] | None = None
 
 
 class BrokerUpdateSchema(Schema):
     """Schema for updating a broker."""
-    name: Optional[str] = None
-    broker_type: Optional[str] = None
-    description: Optional[str] = None
-    is_active: Optional[bool] = None
-    config: Optional[Dict[str, Any]] = None
+
+    name: str | None = None
+    broker_type: str | None = None
+    description: str | None = None
+    is_active: bool | None = None
+    config: dict[str, Any] | None = None
 
 
 class BrokerResponseSchema(Schema):
     """Schema for broker response."""
+
     id: str
     name: str
     broker_type: str
-    description: Optional[str] = None
+    description: str | None = None
     is_active: bool
-    config: Optional[Dict[str, Any]] = None
+    config: dict[str, Any] | None = None
     tenant_id: str
     created_at: datetime
     updated_at: datetime
@@ -109,21 +119,23 @@ class BrokerResponseSchema(Schema):
 
 class BrokerAccountUpdateSchema(Schema):
     """Schema for updating broker account."""
-    account_type: Optional[str] = None
-    currency: Optional[str] = None
-    credentials: Optional[Dict[str, Any]] = None
-    is_active: Optional[bool] = None
+
+    account_type: str | None = None
+    currency: str | None = None
+    credentials: dict[str, Any] | None = None
+    is_active: bool | None = None
 
 
 class BrokerAccountResponseSchema(Schema):
     """Schema for broker account response."""
+
     id: str
     broker_id: str
     account_number: str
     account_type: str
     currency: str
-    balance: Optional[Decimal] = None
-    buying_power: Optional[Decimal] = None
+    balance: Decimal | None = None
+    buying_power: Decimal | None = None
     is_active: bool
     tenant_id: str
     created_at: datetime

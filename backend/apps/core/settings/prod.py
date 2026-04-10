@@ -251,45 +251,53 @@ if SENTRY_DSN:
     )
 
 # Interactive Brokers configuration for production
-IB_CONFIG.update({  # noqa: F405
-    "HOST": env("IB_HOST"),  # noqa: F405
-    "PORT": env("IB_PORT"),  # noqa: F405
-    "CLIENT_ID": env("IB_CLIENT_ID"),  # noqa: F405
-    "READONLY": env("IB_READONLY", default=False),  # noqa: F405
-    "ACCOUNT": env("IB_ACCOUNT"),  # noqa: F405
-    "TIMEOUT": 60,
-    "RECONNECT_ATTEMPTS": 10,
-    "RECONNECT_DELAY": 30,
-})
+IB_CONFIG.update(
+    {  # noqa: F405
+        "HOST": env("IB_HOST"),  # noqa: F405
+        "PORT": env("IB_PORT"),  # noqa: F405
+        "CLIENT_ID": env("IB_CLIENT_ID"),  # noqa: F405
+        "READONLY": env("IB_READONLY", default=False),  # noqa: F405
+        "ACCOUNT": env("IB_ACCOUNT"),  # noqa: F405
+        "TIMEOUT": 60,
+        "RECONNECT_ATTEMPTS": 10,
+        "RECONNECT_DELAY": 30,
+    }
+)
 
 # Risk management configuration for production
-RISK_CONFIG.update({  # noqa: F405
-    "MAX_POSITION_SIZE": env("RISK_MAX_POSITION_SIZE", default=1000000),  # noqa: F405
-    "MAX_ORDER_SIZE": env("RISK_MAX_ORDER_SIZE", default=100000),  # noqa: F405
-    "MAX_DAILY_LOSS": env("RISK_MAX_DAILY_LOSS", default=50000),  # noqa: F405
-    "MAX_ORDERS_PER_MINUTE": env("RISK_MAX_ORDERS_PER_MINUTE", default=60),  # noqa: F405
-    "ENABLE_PRE_TRADE_CHECKS": True,
-    "ENABLE_POSITION_LIMITS": True,
-})
+RISK_CONFIG.update(
+    {  # noqa: F405
+        "MAX_POSITION_SIZE": env("RISK_MAX_POSITION_SIZE", default=1000000),  # noqa: F405
+        "MAX_ORDER_SIZE": env("RISK_MAX_ORDER_SIZE", default=100000),  # noqa: F405
+        "MAX_DAILY_LOSS": env("RISK_MAX_DAILY_LOSS", default=50000),  # noqa: F405
+        "MAX_ORDERS_PER_MINUTE": env("RISK_MAX_ORDERS_PER_MINUTE", default=60),  # noqa: F405
+        "ENABLE_PRE_TRADE_CHECKS": True,
+        "ENABLE_POSITION_LIMITS": True,
+    }
+)
 
 # Strategy configuration for production
-STRATEGY_CONFIG.update({  # noqa: F405
-    "MAX_CONCURRENT_RUNS": env("STRATEGY_MAX_CONCURRENT_RUNS", default=10),  # noqa: F405
-    "DEFAULT_TIMEOUT": env("STRATEGY_DEFAULT_TIMEOUT", default=3600),  # noqa: F405
-    "ENABLE_SANDBOXING": True,
-    "PAPER_TRADING_ONLY": env("STRATEGY_PAPER_TRADING_ONLY", default=False),  # noqa: F405
-    "LOG_RETENTION_DAYS": 90,
-})
+STRATEGY_CONFIG.update(
+    {  # noqa: F405
+        "MAX_CONCURRENT_RUNS": env("STRATEGY_MAX_CONCURRENT_RUNS", default=10),  # noqa: F405
+        "DEFAULT_TIMEOUT": env("STRATEGY_DEFAULT_TIMEOUT", default=3600),  # noqa: F405
+        "ENABLE_SANDBOXING": True,
+        "PAPER_TRADING_ONLY": env("STRATEGY_PAPER_TRADING_ONLY", default=False),  # noqa: F405
+        "LOG_RETENTION_DAYS": 90,
+    }
+)
 
 # Rate limiting for production
 RATELIMIT_ENABLE = True
 RATELIMIT_USE_CACHE = "default"
 
 # Database connection pool settings
-DATABASES["default"]["OPTIONS"].update({
-    "MAX_CONNS": 20,
-    "MIN_CONNS": 5,
-})
+DATABASES["default"]["OPTIONS"].update(
+    {
+        "MAX_CONNS": 20,
+        "MIN_CONNS": 5,
+    }
+)
 
 # Template caching
 for template in TEMPLATES:  # noqa: F405
@@ -306,8 +314,8 @@ for template in TEMPLATES:  # noqa: F405
 # Admin security
 ADMIN_URL = env("ADMIN_URL", default="admin/")  # noqa: F405
 ADMINS = [
-    (name, email) for name, email in 
-    [admin.split(":") for admin in env.list("ADMINS", default=[])]  # noqa: F405
+    (name, email)
+    for name, email in [admin.split(":") for admin in env.list("ADMINS", default=[])]  # noqa: F405
 ]
 MANAGERS = ADMINS
 
@@ -327,7 +335,7 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [  # noqa: F405
 ]
 
 # Additional middleware for production
-MIDDLEWARE = [  # noqa: F405
+MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -339,10 +347,9 @@ MIDDLEWARE = [  # noqa: F405
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # Custom middleware
     "apps.core.middleware.RequestIDMiddleware",
-    "apps.core.middleware.SecurityHeadersMiddleware",
     "apps.core.middleware.AuditLogMiddleware",
-    "apps.tenants.middleware.TenantMiddleware",
-    "apps.core.middleware.RateLimitMiddleware",
+    "apps.api.middleware.TenantMiddleware",
+    "apps.api.middleware.RateLimitMiddleware",
 ]
 
 # Monitoring and health checks
@@ -361,7 +368,7 @@ AUTH_PASSWORD_VALIDATORS += [  # noqa: F405
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {
             "min_length": 12,
-        }
+        },
     },
 ]
 

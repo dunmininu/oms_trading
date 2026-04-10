@@ -471,7 +471,7 @@
 ## **Phase 1 Progress: 35% Complete**
 - **M1 (Foundations)**: 75% ✅ - Core models, auth, tenancy complete; API structure exists but needs implementation
 - **M2 (IB Connector)**: 0% ❌ - Not started
-- **M3 (OMS Core)**: 30% 🚧 - Models complete, services and API need implementation  
+- **M3 (OMS Core)**: 30% 🚧 - Models complete, services and API need implementation
 - **M4 (Market Data)**: 0% ❌ - Not started
 
 ## **Next Priority: Complete M1 Foundation**

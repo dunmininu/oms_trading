@@ -8,4 +8,4 @@ This app handles:
 - Historical data management
 """
 
-default_app_config = 'backend.apps.marketdata.apps.MarketDataConfig'
+default_app_config = "backend.apps.marketdata.apps.MarketDataConfig"

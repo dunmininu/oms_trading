@@ -7,10 +7,11 @@
 .DEFAULT_GOAL := help
 
 # Python and Django settings
-PYTHON := python3.11
+PYTHON ?= python3
 PIP := pip
 DJANGO_SETTINGS_MODULE := backend.apps.core.settings.dev
 MANAGE := $(PYTHON) backend/manage.py
+PRE_COMMIT := backend/venv/bin/pre-commit
 
 # Docker settings
 COMPOSE := docker compose
@@ -50,7 +51,7 @@ dev-install: ## Install development dependencies
 	@echo "$(GREEN)Installing development dependencies...$(NC)"
 	$(PIP) install -e ".[dev]"
 	@echo "$(GREEN)Installing pre-commit hooks...$(NC)"
-	pre-commit install
+	$(PRE_COMMIT) install
 
 setup-env: ## Copy .env.example to .env if not exists
 	@if [ ! -f .env ]; then \
@@ -64,7 +65,7 @@ setup-env: ## Copy .env.example to .env if not exists
 # Development Commands
 dev: setup-env ## Start development server
 	@echo "$(GREEN)Starting development server...$(NC)"
-	$(MANAGE) runserver 0.0.0.0:8000
+	$(MANAGE) runserver 0.0.0.0:8010
 
 dev-worker: ## Start Celery worker in development
 	@echo "$(GREEN)Starting Celery worker...$(NC)"
@@ -154,7 +155,7 @@ check-all: format-check lint test ## Run all code quality checks
 
 pre-commit: ## Run pre-commit hooks on all files
 	@echo "$(GREEN)Running pre-commit hooks...$(NC)"
-	pre-commit run --all-files
+	$(PRE_COMMIT) run --all-files
 
 # Docker Commands
 docker-build: ## Build Docker images
@@ -245,12 +246,12 @@ requirements: ## Generate requirements.txt from pyproject.toml
 # Health checks
 health: ## Check application health
 	@echo "$(GREEN)Checking application health...$(NC)"
-	curl -f http://localhost:8000/health || echo "$(RED)Application is not healthy$(NC)"
+	curl -f http://localhost:8010/health || echo "$(RED)Application is not healthy$(NC)"
 
 # Performance testing
 load-test: ## Run load tests (requires locust)
 	@echo "$(GREEN)Running load tests...$(NC)"
-	locust -f tests/performance/locustfile.py --host=http://localhost:8000
+	locust -f tests/performance/locustfile.py --host=http://localhost:8010
 
 # Security checks
 security-check: ## Run security checks

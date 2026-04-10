@@ -8,4 +8,4 @@ This app handles:
 - Strategy plugin framework
 """
 
-default_app_config = 'backend.apps.strategies.apps.StrategiesConfig'
+default_app_config = "backend.apps.strategies.apps.StrategiesConfig"

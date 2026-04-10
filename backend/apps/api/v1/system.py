@@ -2,14 +2,15 @@
 System and health check API endpoints.
 """
 
-from ninja import Router
-from typing import List, Dict, Any
-from django.http import HttpRequest
-from django.conf import settings
-from django.db import connection
-from django.core.cache import cache
 import platform
 import time
+from typing import Any
+
+from django.conf import settings
+from django.core.cache import cache
+from django.db import connection
+from django.http import HttpRequest
+from ninja import Router
 
 try:
     import psutil  # type: ignore
@@ -20,26 +21,22 @@ router = Router()
 
 
 @router.get("/health", tags=["System"])
-def health_check(request: HttpRequest) -> Dict[str, Any]:
+def health_check(request: HttpRequest) -> dict[str, Any]:
     """Basic health check endpoint."""
     return {
         "status": "healthy",
         "service": "OMS Trading API",
         "version": "1.0.0",
         "timestamp": time.time(),
-        "environment": getattr(settings, 'DJANGO_SETTINGS_MODULE', 'unknown')
+        "environment": getattr(settings, "DJANGO_SETTINGS_MODULE", "unknown"),
     }
 
 
 @router.get("/health/ready", tags=["System"])
-def health_ready(request: HttpRequest) -> Dict[str, Any]:
+def health_ready(request: HttpRequest) -> dict[str, Any]:
     """Readiness probe endpoint for Kubernetes/load balancers."""
-    checks = {
-        "database": False,
-        "cache": False,
-        "overall": False
-    }
-    
+    checks = {"database": False, "cache": False, "overall": False}
+
     # Check database connectivity
     try:
         with connection.cursor() as cursor:
@@ -47,7 +44,7 @@ def health_ready(request: HttpRequest) -> Dict[str, Any]:
             checks["database"] = True
     except Exception:
         checks["database"] = False
-    
+
     # Check cache connectivity
     try:
         cache.set("health_check", "ok", 10)
@@ -55,22 +52,22 @@ def health_ready(request: HttpRequest) -> Dict[str, Any]:
         checks["cache"] = True
     except Exception:
         checks["cache"] = False
-    
+
     # Overall health
     checks["overall"] = all([checks["database"], checks["cache"]])
-    
+
     status = "ready" if checks["overall"] else "not_ready"
-    
+
     return {
         "status": status,
         "service": "OMS Trading API",
         "timestamp": time.time(),
-        "checks": checks
+        "checks": checks,
     }
 
 
 @router.get("/version", tags=["System"])
-def version_info(request: HttpRequest) -> Dict[str, Any]:
+def version_info(request: HttpRequest) -> dict[str, Any]:
     """Get detailed version information."""
     return {
         "service": "OMS Trading API",
@@ -79,12 +76,12 @@ def version_info(request: HttpRequest) -> Dict[str, Any]:
         "git_commit": "unknown",  # TODO: Get from git
         "python_version": platform.python_version(),
         "django_version": "5.1.11",
-        "environment": getattr(settings, 'DJANGO_SETTINGS_MODULE', 'unknown')
+        "environment": getattr(settings, "DJANGO_SETTINGS_MODULE", "unknown"),
     }
 
 
 @router.get("/info", tags=["System"])
-def system_info(request: HttpRequest) -> Dict[str, Any]:
+def system_info(request: HttpRequest) -> dict[str, Any]:
     """Get system information."""
     return {
         "system": "OMS Trading",
@@ -93,12 +90,12 @@ def system_info(request: HttpRequest) -> Dict[str, Any]:
         "platform": platform.platform(),
         "architecture": platform.architecture()[0],
         "processor": platform.processor(),
-        "python_implementation": platform.python_implementation()
+        "python_implementation": platform.python_implementation(),
     }
 
 
 @router.get("/metrics", tags=["System"])
-def system_metrics(request: HttpRequest) -> Dict[str, Any]:
+def system_metrics(request: HttpRequest) -> dict[str, Any]:
     """Get system metrics."""
     try:
         if psutil is None:
@@ -110,7 +107,7 @@ def system_metrics(request: HttpRequest) -> Dict[str, Any]:
         # System metrics
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
 
         # Process metrics
         process = psutil.Process()
@@ -137,5 +134,5 @@ def system_metrics(request: HttpRequest) -> Dict[str, Any]:
         return {
             "error": "Failed to collect metrics",
             "message": str(e),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }

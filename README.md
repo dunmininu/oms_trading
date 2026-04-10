@@ -48,44 +48,44 @@ cp .env.example .env
 make dev-install
 ```
 
-### 2. Start with Docker (Recommended)
+### 2. Choose Your Environment
 
+#### Option A: Docker (Recommended for Isolation)
 ```bash
 # Start all services (PostgreSQL, Redis, IB Gateway, Web App, Celery)
 make docker-up
-
-# Or start individually
-docker compose up -d postgres redis
-docker compose up web
 ```
 
-### 3. Manual Setup (Alternative)
+#### Option B: Native Local (Better Performance on Mac)
+If you prefer to run natively on your Mac to avoid Docker I/O overhead:
+```bash
+# Install dependencies into a local venv
+python3.12 -m venv venv
+source venv/bin/activate
+make dev-install
+
+# Follow the full guide for Postgres/Redis setup:
+# [Local Setup Guide](docs/LOCAL_SETUP_GUIDE.md)
+```
+
+### 3. Initialize & Run
+Regardless of your setup, ensure your `.env` is configured correctly.
 
 ```bash
-# Start database and cache
-docker compose up -d postgres redis
-
 # Run migrations
 make migrate
 
-# Create superuser
-make superuser
-
 # Start development server
 make dev
-
-# In separate terminals, start Celery services
-make dev-worker
-make dev-beat
 ```
 
 ### 4. Access the Application
 
-- **Web API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/api/docs
-- **Django Admin**: http://localhost:8000/admin
-- **Flower (Celery Monitor)**: http://localhost:5555
-- **IB Gateway VNC**: vnc://localhost:5900 (password: oms123)
+- **Web API**: http://localhost:8010
+- **API Documentation**: http://localhost:8010/api/docs
+- **Django Admin**: http://localhost:8010/admin
+- **Flower (Celery Monitor)**: http://localhost:5556
+- **IB Gateway VNC**: vnc://localhost:5901 (password: oms123)
 
 ## Development
 

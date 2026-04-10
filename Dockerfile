@@ -1,6 +1,9 @@
 # Multi-stage build for OMS Trading
-# Stage 1: Build dependencies
-FROM python:3.11-slim as builder
+# STAGE 1: Build dependencies
+FROM python:3.12-slim-bookworm AS builder
+
+# Set working directory for build
+WORKDIR /app
 
 # Set environment variables for memory efficiency
 ENV PYTHONUNBUFFERED=1 \
@@ -10,7 +13,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_BUILD_ISOLATION=1
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     git \
@@ -21,16 +24,16 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt ./
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install -r requirements.txt
+COPY requirements/ ./requirements/
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install -r requirements/prod.txt
 
 # Copy application code for runtime
 COPY backend/ ./backend/
 COPY pyproject.toml README.md LICENSE ./
 
-# Stage 2: Runtime image
-FROM python:3.11-slim as runtime
+# STAGE 2: Runtime image
+FROM python:3.12-slim-bookworm AS runtime
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -40,7 +43,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=apps.core.settings.prod
 
 # Install runtime system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/* \
@@ -53,16 +56,13 @@ COPY --from=builder /opt/venv /opt/venv
 # Create application directory
 WORKDIR /app
 
-# Ensure virtual environment is properly set up
-RUN /opt/venv/bin/python -m pip list
-
 # Copy application code and necessary files
 COPY backend/ ./backend/
 COPY Makefile .env.example ./
 
-# Create necessary directories
-RUN mkdir -p logs media staticfiles && \
-    chown -R oms:oms /app
+# Create necessary directories and set permissions
+RUN mkdir -p logs media staticfiles \
+    && chown -R oms:oms /app
 
 # Copy entrypoint script
 COPY infra/scripts/entrypoint.sh /entrypoint.sh
@@ -71,18 +71,24 @@ RUN chmod +x /entrypoint.sh
 # Switch to non-root user
 USER oms
 
-# Collect static files (skip during build, will be done at runtime)
-# RUN cd backend && python manage.py collectstatic --noinput --settings=apps.core.settings.prod
-
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD /opt/venv/bin/python -c "import requests; requests.get('http://localhost:8000/health/')" || exit 1
+    CMD curl -f http://localhost:8010/health/ || exit 1
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8010
 
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Default command
-CMD ["/opt/venv/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--worker-class", "sync", "--max-requests", "1000", "--max-requests-jitter", "100", "--timeout", "30", "--keep-alive", "5", "--chdir", "backend", "apps.core.wsgi:application"]
+# Default command (Production-ready Gunicorn)
+CMD ["/opt/venv/bin/gunicorn", \
+     "--bind", "0.0.0.0:8010", \
+     "--workers", "4", \
+     "--worker-class", "sync", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "100", \
+     "--timeout", "30", \
+     "--keep-alive", "5", \
+     "--chdir", "backend", \
+     "apps.core.wsgi:application"]

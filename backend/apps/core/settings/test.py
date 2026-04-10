@@ -21,13 +21,15 @@ DATABASES = {
     }
 }
 
+
 # Disable migrations for tests
 class DisableMigrations:
     def __contains__(self, item):
         return True
-    
+
     def __getitem__(self, item):
         return None
+
 
 MIGRATION_MODULES = DisableMigrations()
 
@@ -89,50 +91,60 @@ LOGGING = {
 SENTRY_DSN = ""
 
 # Test-specific IB configuration
-IB_CONFIG.update({  # noqa: F405
-    "HOST": "127.0.0.1",
-    "PORT": 7497,
-    "CLIENT_ID": 999,  # Test client ID
-    "READONLY": True,
-    "ACCOUNT": "TEST123456",
-    "TIMEOUT": 5,
-    "RECONNECT_ATTEMPTS": 1,
-    "RECONNECT_DELAY": 1,
-})
+IB_CONFIG.update(
+    {  # noqa: F405
+        "HOST": "127.0.0.1",
+        "PORT": 7497,
+        "CLIENT_ID": 999,  # Test client ID
+        "READONLY": True,
+        "ACCOUNT": "TEST123456",
+        "TIMEOUT": 5,
+        "RECONNECT_ATTEMPTS": 1,
+        "RECONNECT_DELAY": 1,
+    }
+)
 
 # Risk management for tests
-RISK_CONFIG.update({  # noqa: F405
-    "MAX_POSITION_SIZE": 1000,
-    "MAX_ORDER_SIZE": 100,
-    "MAX_DAILY_LOSS": 50,
-    "MAX_ORDERS_PER_MINUTE": 100,
-    "ENABLE_PRE_TRADE_CHECKS": True,
-    "ENABLE_POSITION_LIMITS": True,
-})
+RISK_CONFIG.update(
+    {  # noqa: F405
+        "MAX_POSITION_SIZE": 1000,
+        "MAX_ORDER_SIZE": 100,
+        "MAX_DAILY_LOSS": 50,
+        "MAX_ORDERS_PER_MINUTE": 100,
+        "ENABLE_PRE_TRADE_CHECKS": True,
+        "ENABLE_POSITION_LIMITS": True,
+    }
+)
 
 # Strategy configuration for tests
-STRATEGY_CONFIG.update({  # noqa: F405
-    "MAX_CONCURRENT_RUNS": 1,
-    "DEFAULT_TIMEOUT": 30,
-    "ENABLE_SANDBOXING": False,
-    "PAPER_TRADING_ONLY": True,
-    "LOG_RETENTION_DAYS": 1,
-})
+STRATEGY_CONFIG.update(
+    {  # noqa: F405
+        "MAX_CONCURRENT_RUNS": 1,
+        "DEFAULT_TIMEOUT": 30,
+        "ENABLE_SANDBOXING": False,
+        "PAPER_TRADING_ONLY": True,
+        "LOG_RETENTION_DAYS": 1,
+    }
+)
 
 # Webhook configuration for tests
-WEBHOOK_CONFIG.update({  # noqa: F405
-    "MAX_RETRIES": 1,
-    "RETRY_DELAY": 1,
-    "TIMEOUT": 5,
-})
+WEBHOOK_CONFIG.update(
+    {  # noqa: F405
+        "MAX_RETRIES": 1,
+        "RETRY_DELAY": 1,
+        "TIMEOUT": 5,
+    }
+)
 
 # Market data configuration for tests
-MARKET_DATA_CONFIG.update({  # noqa: F405
-    "CACHE_TIMEOUT": 10,
-    "SNAPSHOT_INTERVAL": 30,
-    "ENABLE_TICK_STORAGE": False,
-    "MAX_SUBSCRIPTIONS_PER_TENANT": 10,
-})
+MARKET_DATA_CONFIG.update(
+    {  # noqa: F405
+        "CACHE_TIMEOUT": 10,
+        "SNAPSHOT_INTERVAL": 30,
+        "ENABLE_TICK_STORAGE": False,
+        "MAX_SUBSCRIPTIONS_PER_TENANT": 10,
+    }
+)
 
 # Security settings for tests
 SECRET_KEY = "test-secret-key-not-for-production"

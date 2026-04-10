@@ -33,45 +33,45 @@ graph TB
         CLI[CLI Tools]
         API[API Clients]
     end
-    
+
     subgraph "API Gateway Layer"
         Django[Django + Ninja API]
         Auth[Authentication & Authorization]
         RateLimit[Rate Limiting]
     end
-    
+
     subgraph "Core Services"
         OMS[OMS Core Engine]
         Risk[Risk Manager]
         Router[Order Router]
         Compliance[Compliance Engine]
     end
-    
+
     subgraph "Broker Layer"
         IB[IB TWS/Gateway Connector]
         Sim[IB Simulator]
         StateSync[State Synchronization]
     end
-    
+
     subgraph "Data Layer"
         Postgres[(PostgreSQL)]
         Redis[(Redis Cache)]
         S3[S3-Compatible Storage]
     end
-    
+
     subgraph "Background Processing"
         Celery[Celery Workers]
         Beat[Celery Beat]
         Flower[Flower Monitoring]
     end
-    
+
     subgraph "Observability"
         Logs[Structured Logging]
         Metrics[Prometheus Metrics]
         Tracing[Request Tracing]
         Health[Health Checks]
     end
-    
+
     Web --> Django
     CLI --> Django
     API --> Django
@@ -146,27 +146,27 @@ erDiagram
     tenants ||--o{ broker_accounts : owns
     tenants ||--o{ strategies : runs
     tenants ||--o{ risk_limits : configures
-    
+
     users ||--o{ api_keys : has
     users ||--o{ user_sessions : creates
     users ||--o{ audit_logs : generates
-    
+
     broker_accounts ||--o{ orders : places
     broker_accounts ||--o{ positions : holds
     broker_accounts ||--o{ executions : receives
-    
+
     instruments ||--o{ orders : traded
     instruments ||--o{ positions : held
     instruments ||--o{ market_data : provides
-    
+
     strategies ||--o{ strategy_runs : executes
     strategy_runs ||--o{ orders : generates
-    
+
     orders ||--o{ executions : results_in
     orders ||--o{ order_modifications : modified_by
-    
+
     positions ||--o{ pnl_snapshots : tracked_by
-    
+
     tenants {
         uuid id PK
         string name
@@ -177,7 +177,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     users {
         uuid id PK
         string email
@@ -190,7 +190,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     broker_accounts {
         uuid id PK
         uuid tenant_id FK
@@ -202,7 +202,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     instruments {
         uuid id PK
         string symbol
@@ -213,7 +213,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     orders {
         uuid id PK
         uuid tenant_id FK
@@ -229,7 +229,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     executions {
         uuid id PK
         uuid order_id FK
@@ -240,7 +240,7 @@ erDiagram
         jsonb metadata
         timestamp created_at
     }
-    
+
     positions {
         uuid id PK
         uuid tenant_id FK
@@ -252,7 +252,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     strategies {
         uuid id PK
         uuid tenant_id FK
@@ -264,7 +264,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     strategy_runs {
         uuid id PK
         uuid strategy_id FK
@@ -275,7 +275,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     risk_limits {
         uuid id PK
         uuid tenant_id FK
@@ -287,7 +287,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     audit_logs {
         uuid id PK
         uuid tenant_id FK
@@ -439,22 +439,22 @@ services:
     - Django application server
     - Gunicorn with multiple workers
     - Nginx reverse proxy
-  
+
   celery:
     - Background task processing
     - Multiple worker instances
     - Auto-scaling based on queue depth
-  
+
   postgres:
     - Primary database
     - Connection pooling
     - Automated backups
-  
+
   redis:
     - Caching and session storage
     - Celery message broker
     - Cluster mode for high availability
-  
+
   ib-gateway:
     - Interactive Brokers Gateway
     - Paper trading mode for development

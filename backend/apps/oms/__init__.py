@@ -9,4 +9,4 @@ This app handles the core order management functionality including:
 - Compliance checks
 """
 
-default_app_config = 'backend.apps.oms.apps.OmsConfig'
+default_app_config = "backend.apps.oms.apps.OmsConfig"
