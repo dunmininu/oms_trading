@@ -15,13 +15,43 @@ class ICTSetupService:
     """Service for detecting ICT setups (FVG and Liquidity Sweeps)."""
 
     @classmethod
-    def detect_fvg(cls, instrument: Instrument, interval: str) -> list[dict[str, Any]]:
+    def detect_fvg(
+        cls, instrument: Instrument, interval: str, df_bars=None
+    ) -> list[dict[str, Any]]:
         """
         Detect Fair Value Gaps (FVG).
         A bullish FVG occurs when the low of candle 3 is above the high of candle 1.
         A bearish FVG occurs when the high of candle 3 is below the low of candle 1.
         """
-        # Note: Instrument is global, HistoricalData is linked to Instrument
+        if df_bars is not None:
+            # Handle backtest data (Pandas DataFrame)
+            if len(df_bars) < 3:
+                return []
+            fvgs = []
+            for i in range(len(df_bars) - 2):
+                b1 = df_bars.iloc[i]
+                b3 = df_bars.iloc[i + 2]
+                if float(b3["low"]) > float(b1["high"]):
+                    fvgs.append(
+                        {
+                            "type": "BULLISH",
+                            "direction": 1,
+                            "top": b3["low"],
+                            "bottom": b1["high"],
+                        }
+                    )
+                elif float(b3["high"]) < float(b1["low"]):
+                    fvgs.append(
+                        {
+                            "type": "BEARISH",
+                            "direction": -1,
+                            "top": b1["low"],
+                            "bottom": b3["high"],
+                        }
+                    )
+            return fvgs
+
+        # Original live logic
         bars = list(
             HistoricalData.objects.filter(
                 instrument=instrument, interval=interval, data_type="OHLC"
@@ -65,13 +95,24 @@ class ICTSetupService:
 
     @classmethod
     def detect_liquidity_sweeps(
-        cls, instrument: Instrument, interval: str
+        cls, instrument: Instrument, interval: str, df_bars=None
     ) -> list[dict[str, Any]]:
         """
         Detect Liquidity Sweeps.
         A sweep occurs when price moves beyond a previous swing high/low and then reverses.
-        (Simplified version for now: look for wicks beyond recent highs/lows)
         """
+        if df_bars is not None:
+            if len(df_bars) < 10:
+                return []
+            recent_high = df_bars.iloc[:-5]["high"].max()
+            recent_low = df_bars.iloc[:-5]["low"].min()
+            last_bar = df_bars.iloc[-1]
+            if last_bar["high"] > recent_high and last_bar["close"] < recent_high:
+                return [{"type": "BEARISH_SWEEP", "direction": -1}]
+            if last_bar["low"] < recent_low and last_bar["close"] > recent_low:
+                return [{"type": "BULLISH_SWEEP", "direction": 1}]
+            return []
+
         bars = list(
             HistoricalData.objects.filter(
                 instrument=instrument, interval=interval, data_type="OHLC"

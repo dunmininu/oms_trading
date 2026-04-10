@@ -106,6 +106,14 @@ To perform a safe, end-to-end "Major Test" using mocked execution:
 python backend/manage.py run_major_verification
 ```
 
+### Backtesting Strategies
+The bot includes an institutional-grade backtesting engine. To run a backtest and view the PnL accrued over a specific period:
+```bash
+# Run a 60-day backtest for BTCUSD
+python backend/manage.py run_backtest --symbol BTCUSD --days 60
+```
+Results (including equity curves) are saved to the database and can be viewed in the **Django Admin** under **Strategies** -> **Backtest Results**.
+
 ---
 
 ## 7. Scaling for the Future

@@ -102,3 +102,16 @@ class QuantService:
             regime = "OVERSOLD"
 
         return {"rsi": rsi, "z_score": z_score, "regime": regime}
+
+    @classmethod
+    def calculate_indicators(cls, df_bars: pd.DataFrame) -> dict[str, Any]:
+        """Calculates quantitative indicators for a given set of bars (backtest helper)."""
+        prices = df_bars["close"].astype(float).tolist()
+        rsi = cls.calculate_rsi(prices)
+        z_score = cls.calculate_z_score(prices)
+        regime = "NEUTRAL"
+        if rsi > 70:
+            regime = "OVERBOUGHT"
+        elif rsi < 30:
+            regime = "OVERSOLD"
+        return {"rsi": rsi, "z_score": z_score, "regime": regime}
