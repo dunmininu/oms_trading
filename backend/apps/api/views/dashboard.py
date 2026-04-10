@@ -41,3 +41,41 @@ class StrategyListView(ListView):
     model = Strategy
     template_name = "dashboard/strategies.html"
     context_object_name = "strategies"
+
+    def post(self, request, *args, **kwargs):
+        from django.contrib import messages
+        action = request.POST.get('action')
+
+        if action == 'start_all':
+            Strategy.objects.update(is_active=True, status='RUNNING')
+            messages.success(request, "Institutional Fleet: All strategies engaged.")
+        elif action == 'stop_all':
+            Strategy.objects.update(is_active=False, status='STOPPED')
+            messages.warning(request, "Institutional Fleet: All strategies disengaged.")
+
+        return self.get(request, *args, **kwargs)
+
+class BrokerManagementView(TemplateView):
+    template_name = "dashboard/brokers.html"
+
+    def get_context_data(self, **kwargs):
+        from apps.brokers.models import BrokerConnection, BrokerAccount
+        context = super().get_context_data(**kwargs)
+        context['connections'] = BrokerConnection.objects.all().select_related('broker')
+        context['accounts'] = BrokerAccount.objects.all().select_related('broker_connection')
+        return context
+
+class SystemSettingsView(TemplateView):
+    template_name = "dashboard/settings.html"
+
+    def post(self, request, *args, **kwargs):
+        from django.contrib import messages
+        from apps.oms.models import Order
+        action = request.POST.get('action')
+
+        if action == 'kill_switch':
+            # Logic to cancel all orders
+            Order.objects.filter(state__in=['PENDING', 'SUBMITTED']).update(state='CANCELLED')
+            messages.error(request, "GLOBAL KILL SWITCH ENGAGED: All pending orders cancelled.")
+
+        return self.get(request, *args, **kwargs)

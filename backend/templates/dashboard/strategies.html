@@ -5,10 +5,21 @@
 {% block content %}
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-2xl font-bold text-slate-800">Strategy Fleet</h1>
-    <div class="space-x-2">
-        <button class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-emerald-700 transition-colors">
-            <i class="fas fa-play mr-2"></i> START ALL
-        </button>
+    <div class="flex space-x-2">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="start_all">
+            <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-emerald-700 transition-colors">
+                <i class="fas fa-play mr-2"></i> START ALL
+            </button>
+        </form>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="stop_all">
+            <button type="submit" class="bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-rose-700 transition-colors">
+                <i class="fas fa-stop mr-2"></i> STOP ALL
+            </button>
+        </form>
         <button class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-300 transition-colors">
             <i class="fas fa-plus mr-2"></i> NEW STRATEGY
         </button>
