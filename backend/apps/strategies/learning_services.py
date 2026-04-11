@@ -6,7 +6,6 @@ import logging
 
 from apps.oms.models import Order
 from apps.strategies.models import SetupPerformance
-from apps.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,6 @@ class LearningService:
 
         # Update SetupPerformance record
         performance, _ = SetupPerformance.objects.get_or_create(
-            tenant=order.tenant,
             instrument=order.instrument,
             setup_type=setup_info.get("type"),
             timeframe=setup_info.get("timeframe"),
@@ -48,13 +46,10 @@ class LearningService:
         )
 
     @classmethod
-    def get_setup_adjustment(
-        cls, tenant: Tenant, instrument, setup_type: str, timeframe: str
-    ) -> float:
+    def get_setup_adjustment(cls, instrument, setup_type: str, timeframe: str) -> float:
         """Get a score adjustment based on historical performance of this setup."""
         try:
             perf = SetupPerformance.objects.get(
-                tenant=tenant,
                 instrument=instrument,
                 setup_type=setup_type,
                 timeframe=timeframe,

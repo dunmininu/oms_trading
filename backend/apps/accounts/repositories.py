@@ -43,7 +43,6 @@ class ApiKeyRepository(DjangoRepository[ApiKey]):
 
     def list_for_user(self, tenant_id: str, user: User):
         return self.model.objects.filter(
-            tenant_id=tenant_id,
             user=user,
             is_active=True,
         ).order_by("-created_at")
@@ -52,7 +51,6 @@ class ApiKeyRepository(DjangoRepository[ApiKey]):
         try:
             api_key = self.model.objects.get(
                 id=api_key_id,
-                tenant_id=tenant_id,
                 user=user,
                 is_active=True,
             )
@@ -69,7 +67,6 @@ class ApiKeyRepository(DjangoRepository[ApiKey]):
         Expects: data with keys: tenant_id, user, name, scopes, expires_at (optional).
         """
         return self.model.create_with_key(
-            tenant_id=data.get("tenant_id"),
             user=data.get("user"),
             name=data.get("name", ""),
             scopes=data.get("scopes") or [],

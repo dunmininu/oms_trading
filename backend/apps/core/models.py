@@ -28,26 +28,6 @@ class BaseModel(models.Model):
         return f"{self.__class__.__name__}({self.id})"
 
 
-class TenantAwareModel(BaseModel):
-    """Base model for tenant-scoped models."""
-
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="%(class)s_set",
-        db_index=True,
-        null=True,  # Allow null for core models
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-        indexes = [
-            models.Index(fields=["tenant", "created_at"]),
-            models.Index(fields=["tenant", "is_active"]),
-        ]
-
-
 class UserManager(BaseUserManager):
     """Custom manager for User model."""
 
@@ -198,8 +178,6 @@ class AuditLog(BaseModel):
         ("BROKER_DISCONNECT", "Broker Disconnect"),
     ]
 
-    # Tenant is optional for system-level audit logs
-    tenant_id = models.UUIDField(null=True, blank=True, db_index=True)
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -223,9 +201,6 @@ class AuditLog(BaseModel):
         verbose_name = _("audit log")
         verbose_name_plural = _("audit logs")
         indexes = [
-            models.Index(fields=["tenant_id", "action"]),
-            models.Index(fields=["tenant_id", "resource_type"]),
-            models.Index(fields=["tenant_id", "created_at"]),
             models.Index(fields=["user", "created_at"]),
             models.Index(fields=["action", "created_at"]),
         ]

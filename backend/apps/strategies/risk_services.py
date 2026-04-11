@@ -44,7 +44,7 @@ class RiskManagementService:
         """
         Validate trade and calculate dynamic position size using Kelly Criterion.
         """
-        grade_limits = {"A+": 5, "B": 3, "C": 1, "D-": 0}
+        grade_limits = {"A+": 5, "A": 4, "B": 3, "C": 1, "D-": 0}
         max_allowed = grade_limits.get(grade, 0)
 
         if max_allowed == 0:

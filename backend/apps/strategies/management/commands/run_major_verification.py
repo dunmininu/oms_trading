@@ -16,7 +16,6 @@ from apps.oms.services import OMSService
 from apps.strategies.grading_services import GradingService
 from apps.strategies.ml_services import MLStrategyService
 from apps.strategies.risk_services import RiskManagementService
-from apps.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +34,8 @@ class Command(BaseCommand):
             )
         )
 
-        tenant = Tenant.objects.get(slug="default")
         user = User.objects.get(email="admin@omstrading.com")
-        conn = BrokerConnection.objects.get(tenant=tenant, name="Main IB Connection")
+        conn = BrokerConnection.objects.get(name="Main IB Connection")
         gbpjpy, btcusd = await MarketDataService.ensure_instruments()
 
         self.stdout.write("Testing High-Speed Redis Cache...")
@@ -54,7 +52,7 @@ class Command(BaseCommand):
 
         self.stdout.write("Executing integrated trade flow...")
         os.environ["FORCE_SETUP_GRADE"] = "A+"
-        grading_result = GradingService.grade_setup(btcusd, "15_MINUTE", tenant=tenant)
+        grading_result = GradingService.grade_setup(btcusd, "15_MINUTE")
 
         test_win_prob = 0.6
         risk_result = RiskManagementService.validate_trade(
@@ -73,7 +71,6 @@ class Command(BaseCommand):
 
         if risk_result["allowed"]:
             order = await OMSService.place_order(
-                tenant=tenant,
                 user=user,
                 broker_account=BrokerAccount.objects.get(broker_connection=conn),
                 instrument=btcusd,
@@ -97,13 +94,11 @@ class Command(BaseCommand):
         vix100 = Instrument.objects.get(symbol="VIX100")
         deriv_broker = Broker.objects.get(broker_type="DERIV")
         deriv_conn, _ = BrokerConnection.objects.get_or_create(
-            tenant=tenant,
             broker=deriv_broker,
             name="Test Deriv",
             defaults={"api_key": "mock_token", "status": "CONNECTED"},
         )
         deriv_acc, _ = BrokerAccount.objects.get_or_create(
-            tenant=tenant,
             broker_connection=deriv_conn,
             account_number="CR12345",
             defaults={"status": "ACTIVE"},
@@ -111,7 +106,6 @@ class Command(BaseCommand):
 
         self.stdout.write("Placing Mocked Deriv Trade for VIX100...")
         deriv_order = Order.objects.create(
-            tenant=tenant,
             user=user,
             broker_account=deriv_acc,
             instrument=vix100,

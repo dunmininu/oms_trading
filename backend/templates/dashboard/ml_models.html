@@ -1,0 +1,231 @@
+{% extends "layouts/base.html" %}
+{% load humanize %}
+
+{% block title %}Quantum Intelligence | Sanusi OMS{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">Quantum Intelligence</h1>
+            <p class="text-slate-500 mt-1">Self-learning ML models and real-time training telemetry.</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-widest">
+                XGBoost Protocol v2.1
+            </span>
+            <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-widest">
+                Self-Learning: Active
+            </span>
+        </div>
+    </div>
+
+    <!-- Models Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {% for model in models %}
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-6">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">{{ model.name }}</h3>
+                        <p class="text-xs text-slate-400 font-mono">{{ model.symbol }}</p>
+                    </div>
+                    <div class="h-10 w-10 rounded-xl {% if model.exists %}bg-emerald-50 text-emerald-600{% else %}bg-rose-50 text-rose-600{% endif %} flex items-center justify-center">
+                        <i class="fas {% if model.exists %}fa-brain{% else %}fa-microchip{% endif %} text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Status</span>
+                        <span class="font-bold {% if model.exists %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {% if model.exists %}READY{% else %}MISSING{% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Learning Pool</span>
+                        <span class="font-mono font-bold">{{ model.learning_labels }} labels</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500">Last Trained</span>
+                        <span class="text-slate-700">{% if model.exists %}{{ model.last_trained|naturaltime }}{% else %}Never{% endif %}</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-xs font-mono text-slate-400">{{ model.size }}</span>
+                    <button type="button" onclick="igniteTraining('{{model.symbol}}')"
+                            class="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors">
+                        <i class="fas fa-play mr-2"></i> Ignite Training
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quantum Console & Documentation -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Log Console -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[500px]">
+            <div class="px-4 py-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="flex space-x-1">
+                        <div class="w-3 h-3 bg-rose-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-amber-500 rounded-full"></div>
+                        <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest ml-4">Quantum Console — <span id="current-symbol">Select Model</span></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="console-status" class="h-2 w-2 bg-slate-600 rounded-full"></span>
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Idle</span>
+                </div>
+            </div>
+            <div id="log-container" class="flex-grow p-4 font-mono text-xs overflow-y-auto space-y-1 text-slate-300">
+                <div class="text-indigo-400 opacity-50"># SANUSI QUANTUM ENGINE v2.1.0</div>
+                <div class="text-slate-500 italic"># Ready for training session. Select a model to monitor history or trigger new ignition.</div>
+            </div>
+        </div>
+
+        <!-- Self-Learning Docs -->
+        <div class="bg-indigo-600 rounded-2xl p-8 text-white relative overflow-hidden flex flex-col justify-center">
+            <div class="relative z-10">
+                <h2 class="text-2xl font-bold mb-4">How Self-Learning Works</h2>
+                <div class="space-y-6">
+                    <div class="flex gap-4">
+                        <div class="h-8 w-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">1</div>
+                        <p class="text-indigo-100 text-sm">
+                            <strong class="text-white">Harvesting:</strong> Every backtest and live trade generates a "Learning Label". Even rejected setups are harvested to teach the model what to avoid.
+                        </p>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="h-8 w-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">2</div>
+                        <p class="text-indigo-100 text-sm">
+                            <strong class="text-white">Reinforcement:</strong> Harvesting results in "Win/Loss" labels that are injected back into the historical OHLCV pool during the next training iteration.
+                        </p>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="h-8 w-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">3</div>
+                        <p class="text-indigo-100 text-sm">
+                            <strong class="text-white">Veto Control:</strong> The model adapts its veto probability based on recent regime changes, effectively "learning" which timeframes or symbols are currently underperforming for specific ICT setups.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-8 flex items-center space-x-4">
+                    <div class="px-4 py-2 bg-white/10 rounded-lg border border-white/20 backdrop-blur-sm">
+                        <span class="text-[10px] uppercase font-bold text-indigo-200">Current Accuracy</span>
+                        <p class="text-xl font-bold">~74.2%</p>
+                    </div>
+                    <div class="px-4 py-2 bg-white/10 rounded-lg border border-white/20 backdrop-blur-sm">
+                        <span class="text-[10px] uppercase font-bold text-indigo-200">Stored Labels</span>
+                        <p class="text-xl font-bold">{{ total_labels|default:"0" }}</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Decorative Icon -->
+            <i class="fas fa-brain absolute -right-4 -bottom-4 text-9xl text-white/10"></i>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSymbol = null;
+    let lastLogId = 0;
+    let pollInterval = null;
+
+    // Auto-select first model on load if available
+    window.onload = function() {
+        const defaultModel = document.querySelector('.model-item');
+        if (defaultModel) {
+            const symbol = defaultModel.getAttribute('onclick').match(/'([^']+)'/)[1];
+            selectModel(symbol);
+        }
+    };
+
+    function selectModel(symbol) {
+        currentSymbol = symbol;
+        document.getElementById('current-symbol').innerText = symbol;
+        document.getElementById('log-container').innerHTML = '<div class=\"text-slate-500 italic\"># Syncing memory banks...</div>';
+        lastLogId = 0;
+
+        if (pollInterval) clearInterval(pollInterval);
+
+        // Fetch last 20 logs immediately for history
+        fetch(`/dashboard/ml-logs/${symbol}/?limit=20`)
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('log-container');
+                container.innerHTML = ''; // Clear sync message
+                if (data.logs && data.logs.length > 0) {
+                    renderLogs(data.logs);
+                } else {
+                    container.innerHTML = '<div class=\"text-slate-500 italic\"># No historical logs found for this model.</div>';
+                }
+                startPolling();
+            });
+
+        document.getElementById('console-status').classList.remove('bg-slate-600');
+        document.getElementById('console-status').classList.add('bg-emerald-500', 'animate-pulse');
+    }
+
+    function igniteTraining(symbol) {
+        selectModel(symbol); // Switch console context
+
+        const formData = new FormData();
+        formData.append('symbol', symbol);
+        formData.append('action', 'train');
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('log-container');
+            const div = document.createElement('div');
+            div.innerHTML = `<span class=\"text-indigo-400 font-bold tracking-widest\">>>> ${data.message}</span>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    function renderLogs(logs) {
+        const container = document.getElementById('log-container');
+        logs.forEach(log => {
+            const div = document.createElement('div');
+            let colorClass = 'text-slate-300';
+            if (log.level === 'SUCCESS') colorClass = 'text-emerald-400';
+            if (log.level === 'ERROR') colorClass = 'text-rose-400';
+            if (log.level === 'WARNING') colorClass = 'text-amber-400';
+
+            const time = new Date(log.timestamp).toLocaleTimeString();
+            div.innerHTML = `<span class=\"text-slate-600\">[${time}]</span> <span class=\"${colorClass}\">${log.message}</span>`;
+            container.appendChild(div);
+            lastLogId = Math.max(lastLogId, log.id);
+        });
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function startPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(() => {
+            if (!currentSymbol || isNaN(lastLogId)) return;
+
+            fetch(`/dashboard/ml-logs/${currentSymbol}/?last_id=${lastLogId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.logs && data.logs.length > 0) {
+                        renderLogs(data.logs);
+                    }
+                })
+                .catch(err => console.error("Quantum Link Interrupted:", err));
+        }, 2000);
+    }
+</script>
+{% endblock %}

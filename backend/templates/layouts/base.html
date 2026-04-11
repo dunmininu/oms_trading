@@ -29,7 +29,9 @@
                         <a href="{% url 'dashboard:index' %}" class="px-3 py-2 rounded-md hover:bg-slate-800 {% if request.resolver_match.url_name == 'index' %}bg-slate-800 text-indigo-400{% endif %}">Dashboard</a>
                         <a href="{% url 'dashboard:strategies' %}" class="px-3 py-2 rounded-md hover:bg-slate-800 {% if request.resolver_match.url_name == 'strategies' %}bg-slate-800 text-indigo-400{% endif %}">Strategies</a>
                         <a href="{% url 'dashboard:backtests' %}" class="px-3 py-2 rounded-md hover:bg-slate-800 {% if request.resolver_match.url_name == 'backtests' %}bg-slate-800 text-indigo-400{% endif %}">Backtests</a>
+                        <a href="{% url 'dashboard:trades' %}" class="px-3 py-2 rounded-md hover:bg-slate-800 {% if request.resolver_match.url_name == 'trades' %}bg-slate-800 text-indigo-400{% endif %}">Trades</a>
                         <a href="{% url 'dashboard:brokers' %}" class="px-3 py-2 rounded-md hover:bg-slate-800 {% if request.resolver_match.url_name == 'brokers' %}bg-slate-800 text-indigo-400{% endif %}">Brokers</a>
+                        <a href="{% url 'dashboard:ml' %}" class="px-3 py-2 rounded-md hover:bg-slate-800 {% if request.resolver_match.url_name == 'ml' %}bg-slate-800 text-indigo-400{% endif %}">Quantum ML</a>
                         <a href="{% url 'dashboard:settings' %}" class="px-3 py-2 rounded-md hover:bg-slate-800 {% if request.resolver_match.url_name == 'settings' %}bg-slate-800 text-indigo-400{% endif %}">Bot Config</a>
                     </div>
                 </div>
@@ -58,7 +60,9 @@
         <a href="{% url 'dashboard:index' %}" class="block px-3 py-2 rounded-md hover:bg-slate-800 text-slate-300">Dashboard</a>
         <a href="{% url 'dashboard:strategies' %}" class="block px-3 py-2 rounded-md hover:bg-slate-800 text-slate-300">Strategies</a>
         <a href="{% url 'dashboard:backtests' %}" class="block px-3 py-2 rounded-md hover:bg-slate-800 text-slate-300">Backtests</a>
+        <a href="{% url 'dashboard:trades' %}" class="block px-3 py-2 rounded-md hover:bg-slate-800 text-slate-300">Trades</a>
         <a href="{% url 'dashboard:brokers' %}" class="block px-3 py-2 rounded-md hover:bg-slate-800 text-slate-300">Brokers</a>
+        <a href="{% url 'dashboard:ml' %}" class="block px-3 py-2 rounded-md hover:bg-slate-800 text-slate-300">Quantum ML</a>
         <a href="{% url 'dashboard:settings' %}" class="block px-3 py-2 rounded-md hover:bg-slate-800 text-slate-300">Bot Config</a>
     </div>
 

@@ -186,12 +186,6 @@ class Order(BaseModel):
     ]
 
     # Core Order Information
-    tenant = models.ForeignKey(
-        "tenants.Tenant", on_delete=models.CASCADE, related_name="orders", db_index=True
-    )
-    user = models.ForeignKey(
-        "core.User", on_delete=models.CASCADE, related_name="orders", db_index=True
-    )
     broker_account = models.ForeignKey(
         "brokers.BrokerAccount",
         on_delete=models.CASCADE,
@@ -279,7 +273,6 @@ class Order(BaseModel):
             models.Index(fields=["broker_order_id"]),
             models.Index(fields=["state"]),
             models.Index(fields=["submitted_at"]),
-            models.Index(fields=["user", "submitted_at"]),
             models.Index(fields=["broker_account", "submitted_at"]),
             models.Index(fields=["instrument", "submitted_at"]),
         ]
@@ -337,12 +330,6 @@ class Order(BaseModel):
 class Execution(BaseModel):
     """Execution model for tracking order fills."""
 
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="executions",
-        db_index=True,
-    )
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name="executions", db_index=True
     )
@@ -386,12 +373,6 @@ class Execution(BaseModel):
 class Position(BaseModel):
     """Position model for tracking current holdings."""
 
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="positions",
-        db_index=True,
-    )
     broker_account = models.ForeignKey(
         "brokers.BrokerAccount",
         on_delete=models.CASCADE,
@@ -436,9 +417,8 @@ class Position(BaseModel):
         db_table = "oms_position"
         verbose_name = _("position")
         verbose_name_plural = _("positions")
-        unique_together = ["tenant", "broker_account", "instrument"]
+        unique_together = ["broker_account", "instrument"]
         indexes = [
-            models.Index(fields=["tenant", "instrument"]),
             models.Index(fields=["broker_account", "instrument"]),
             models.Index(fields=["quantity"]),
             models.Index(fields=["last_updated"]),
@@ -483,12 +463,6 @@ class Position(BaseModel):
 class PnLSnapshot(BaseModel):
     """Daily P&L snapshot for reporting and analysis."""
 
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="pnl_snapshots",
-        db_index=True,
-    )
     broker_account = models.ForeignKey(
         "brokers.BrokerAccount",
         on_delete=models.CASCADE,
@@ -531,10 +505,9 @@ class PnLSnapshot(BaseModel):
         db_table = "oms_pnl_snapshot"
         verbose_name = _("P&L snapshot")
         verbose_name_plural = _("P&L snapshots")
-        unique_together = ["tenant", "broker_account", "snapshot_date"]
+        unique_together = ["broker_account", "snapshot_date"]
         indexes = [
             models.Index(fields=["snapshot_date"]),
-            models.Index(fields=["tenant", "snapshot_date"]),
             models.Index(fields=["broker_account", "snapshot_date"]),
         ]
 

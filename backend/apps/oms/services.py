@@ -23,8 +23,6 @@ class OMSService:
     @classmethod
     async def place_order(
         cls,
-        tenant,
-        user,
         broker_account: BrokerAccount,
         instrument: Instrument,
         side: str,
@@ -35,8 +33,6 @@ class OMSService:
     ) -> Order:
         client_order_id = f"OMS-{uuid.uuid4().hex[:8]}"
         order = Order.objects.create(
-            tenant=tenant,
-            user=user,
             broker_account=broker_account,
             instrument=instrument,
             client_order_id=client_order_id,
@@ -52,9 +48,9 @@ class OMSService:
             connection_id = broker_account.broker_connection_id
             client = await BrokerService.get_client(connection_id)
 
-            if not client.is_connected():
+            if not client.is_connected:
                 await BrokerService.connect_broker(connection_id)
-                if not client.is_connected():
+                if not client.is_connected:
                     order.state = "REJECTED"
                     order.reject_reason = "Broker disconnected"
                     order.save()
@@ -162,7 +158,6 @@ class OMSService:
 
                 # Create Execution record
                 Execution.objects.create(
-                    tenant=order.tenant,
                     order=order,
                     execution_id=fill.execution.execId,
                     broker_execution_id=fill.execution.execId,
@@ -198,7 +193,6 @@ class OMSService:
     def _update_deriv_position(cls, order, response):
         """Update position for Deriv trades."""
         pos, created = Position.objects.get_or_create(
-            tenant=order.tenant,
             broker_account=order.broker_account,
             instrument=order.instrument,
             defaults={"quantity": Decimal("0.0000"), "average_cost": Decimal("0.0000")},
@@ -216,7 +210,6 @@ class OMSService:
     @classmethod
     def _update_position(cls, order, fill):
         pos, created = Position.objects.get_or_create(
-            tenant=order.tenant,
             broker_account=order.broker_account,
             instrument=order.instrument,
             defaults={"quantity": Decimal("0.0000"), "average_cost": Decimal("0.0000")},
@@ -240,24 +233,20 @@ class OMSService:
 
 
 class OrderService:
-    def __init__(self, tenant=None, user=None):
-        self.tenant = tenant
-        self.user = user
+    def __init__(self):
+        pass
 
 
 class ExecutionService:
-    def __init__(self, tenant=None, user=None):
-        self.tenant = tenant
-        self.user = user
+    def __init__(self):
+        pass
 
 
 class PositionService:
-    def __init__(self, tenant=None, user=None):
-        self.tenant = tenant
-        self.user = user
+    def __init__(self):
+        pass
 
 
 class PnLService:
-    def __init__(self, tenant=None, user=None):
-        self.tenant = tenant
-        self.user = user
+    def __init__(self):
+        pass

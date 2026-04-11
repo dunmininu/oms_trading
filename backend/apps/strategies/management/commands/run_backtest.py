@@ -8,7 +8,6 @@ from django.utils import timezone
 from apps.marketdata.models import HistoricalData
 from apps.oms.models import Instrument
 from apps.strategies.services import BacktestService
-from apps.tenants.models import Tenant
 
 
 class Command(BaseCommand):
@@ -22,30 +21,32 @@ class Command(BaseCommand):
         symbol = options["symbol"]
         days = options["days"]
 
-        tenant = Tenant.objects.first()
-        if not tenant:
-            self.stdout.write(
-                self.style.ERROR("No tenant found. Run seed_brokers first.")
+        instrument = Instrument.objects.filter(symbol=symbol).first()
+        if not instrument:
+            instrument = Instrument.objects.create(
+                symbol=symbol,
+                name=symbol,
+                instrument_type="FOREX"
+                if "JPY" in symbol or "USD" in symbol
+                else "SYNTHETIC",
+                exchange="DERIV"
+                if ("R_" in symbol or "JD" in symbol or "BOOM" in symbol)
+                else "IDEALPRO",
+                currency="USD",
             )
-            return
 
-        instrument, _ = Instrument.objects.get_or_create(
-            symbol=symbol,
-            defaults={
-                "name": symbol,
-                "instrument_type": "FOREX",
-                "exchange": "IDEALPRO",
-                "currency": "JPY",
-            },
-        )
+        # 0. Cleanup old data for this instrument to prevent signal pollution
+        self.stdout.write(f"Clearing old cache for {symbol}...")
+        HistoricalData.objects.filter(instrument=instrument).delete()
 
         # 1. Seed historical data for the backtest period if missing
-        self.stdout.write(f"Preparing historical data for {symbol}...")
+        self.stdout.write(f"Preparing stable historical data for {symbol}...")
         end_date = timezone.now()
         start_date = end_date - timedelta(days=days)
 
         current_time = start_date
-        price = 180.00 if "JPY" in symbol else 50000.0
+        initial_price = 180.00 if "JPY" in symbol else 50000.0
+        price = initial_price
 
         bars_to_create = []
         while current_time < end_date:
@@ -112,12 +113,24 @@ class Command(BaseCommand):
                     )
                     current_time += timedelta(minutes=15)
             else:
-                # Normal random walk
-                change = random.uniform(-0.001, 0.001)  # noqa: S311
+                # Stable Mean-Reverting Walk (Ornstein-Uhlenbeck simplified)
+                # Helps prevent exponential drift during 365-day runs
+                mu = initial_price
+                theta = 0.01  # Reversion strength
+                sigma = 0.002  # Volatility
+
+                price_change = theta * (mu - price) + price * random.uniform(  # noqa: S311
+                    -sigma, sigma
+                )
+                price += price_change
+
+                # Overflow/Underflow Safety Clamps
+                price = max(1.0, min(price, 1000000000.0))
+
                 open_p = price
-                close_p = price * (1 + change)
-                high_p = max(open_p, close_p) + 0.05
-                low_p = min(open_p, close_p) - 0.05
+                close_p = price + (price * random.uniform(-0.0005, 0.0005))  # noqa: S311
+                high_p = max(open_p, close_p) + (price * 0.0001)
+                low_p = min(open_p, close_p) - (price * 0.0001)
 
                 bars_to_create.append(
                     HistoricalData(
@@ -133,7 +146,6 @@ class Command(BaseCommand):
                         volume=random.randint(100, 500),  # noqa: S311
                     )
                 )
-                price = close_p
                 current_time += timedelta(minutes=15)
 
             if len(bars_to_create) >= 1000:
@@ -148,7 +160,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f"Starting Backtest for {symbol} (Last {days} days)...")
         )
-        engine = BacktestService(tenant)
+        engine = BacktestService()
         results = engine.run(symbol, start_date, end_date)
 
         if "error" in results:

@@ -82,7 +82,6 @@ class BrokerConnectionAdmin(admin.ModelAdmin):
 
     list_display = [
         "name",
-        "tenant_name",
         "broker_name",
         "status_display",
         "last_connected",
@@ -93,10 +92,9 @@ class BrokerConnectionAdmin(admin.ModelAdmin):
         "broker__broker_type",
         "auto_reconnect",
         "enable_logging",
-        "tenant",
         "created_at",
     ]
-    search_fields = ["name", "tenant__name", "broker__name", "description"]
+    search_fields = ["name", "broker__name", "description"]
     readonly_fields = [
         "id",
         "created_at",
@@ -109,7 +107,7 @@ class BrokerConnectionAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             _("Basic Information"),
-            {"fields": ("tenant", "broker", "name", "description")},
+            {"fields": ("broker", "name", "description")},
         ),
         (
             _("Authentication"),
@@ -160,16 +158,6 @@ class BrokerConnectionAdmin(admin.ModelAdmin):
         ),
     )
 
-    def tenant_name(self, obj):
-        """Display tenant name with link to tenant admin."""
-        if obj.tenant:
-            url = reverse("admin:tenants_tenant_change", args=[obj.tenant.id])
-            return format_html('<a href="{}">{}</a>', url, obj.tenant.name)
-        return "-"
-
-    tenant_name.short_description = _("Tenant")
-    tenant_name.admin_order_field = "tenant__name"
-
     def broker_name(self, obj):
         """Display broker name with link to broker admin."""
         if obj.broker:
@@ -198,7 +186,7 @@ class BrokerConnectionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """Optimize queryset with select_related."""
-        return super().get_queryset(request).select_related("tenant", "broker")
+        return super().get_queryset(request).select_related("broker")
 
 
 @admin.register(BrokerAccount)
@@ -208,7 +196,6 @@ class BrokerAccountAdmin(admin.ModelAdmin):
     list_display = [
         "account_name",
         "account_number",
-        "tenant_name",
         "broker_connection_name",
         "account_type",
         "status_display",
@@ -222,13 +209,11 @@ class BrokerAccountAdmin(admin.ModelAdmin):
         "can_trade_stocks",
         "can_trade_options",
         "can_trade_futures",
-        "tenant",
         "created_at",
     ]
     search_fields = [
         "account_name",
         "account_number",
-        "tenant__name",
         "broker_connection__name",
     ]
     readonly_fields = ["id", "created_at", "updated_at"]
@@ -239,7 +224,6 @@ class BrokerAccountAdmin(admin.ModelAdmin):
             _("Basic Information"),
             {
                 "fields": (
-                    "tenant",
                     "broker_connection",
                     "account_name",
                     "account_number",
@@ -277,16 +261,6 @@ class BrokerAccountAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
-
-    def tenant_name(self, obj):
-        """Display tenant name with link to tenant admin."""
-        if obj.tenant:
-            url = reverse("admin:tenants_tenant_change", args=[obj.tenant.id])
-            return format_html('<a href="{}">{}</a>', url, obj.tenant.name)
-        return "-"
-
-    tenant_name.short_description = _("Tenant")
-    tenant_name.admin_order_field = "tenant__name"
 
     def broker_connection_name(self, obj):
         """Display broker connection name with link to admin."""
@@ -342,9 +316,7 @@ class BrokerAccountAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """Optimize queryset with select_related."""
-        return (
-            super().get_queryset(request).select_related("tenant", "broker_connection")
-        )
+        return super().get_queryset(request).select_related("broker_connection")
 
 
 @admin.register(BrokerConnectionLog)
@@ -353,15 +325,14 @@ class BrokerConnectionLogAdmin(admin.ModelAdmin):
 
     list_display = [
         "event_type",
-        "tenant_name",
         "broker_connection_name",
         "level_display",
         "message_preview",
         "response_time_display",
         "created_at",
     ]
-    list_filter = ["event_type", "level", "tenant", "broker_connection", "created_at"]
-    search_fields = ["message", "tenant__name", "broker_connection__name", "error_code"]
+    list_filter = ["event_type", "level", "broker_connection", "created_at"]
+    search_fields = ["message", "broker_connection__name", "error_code"]
     readonly_fields = [
         "id",
         "created_at",
@@ -382,7 +353,6 @@ class BrokerConnectionLogAdmin(admin.ModelAdmin):
             _("Basic Information"),
             {
                 "fields": (
-                    "tenant",
                     "broker_connection",
                     "event_type",
                     "message",
@@ -407,16 +377,6 @@ class BrokerConnectionLogAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
-
-    def tenant_name(self, obj):
-        """Display tenant name with link to tenant admin."""
-        if obj.tenant:
-            url = reverse("admin:tenants_tenant_change", args=[obj.tenant.id])
-            return format_html('<a href="{}">{}</a>', url, obj.tenant.name)
-        return "-"
-
-    tenant_name.short_description = _("Tenant")
-    tenant_name.admin_order_field = "tenant__name"
 
     def broker_connection_name(self, obj):
         """Display broker connection name with link to admin."""
@@ -470,9 +430,7 @@ class BrokerConnectionLogAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """Optimize queryset with select_related."""
-        return (
-            super().get_queryset(request).select_related("tenant", "broker_connection")
-        )
+        return super().get_queryset(request).select_related("broker_connection")
 
     def has_add_permission(self, request):
         """Connection logs should not be manually created."""

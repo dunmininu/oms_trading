@@ -2,7 +2,6 @@
 Authentication API endpoints.
 """
 
-import contextlib
 from datetime import datetime
 
 import jwt
@@ -18,7 +17,6 @@ from apps.accounts.schemas import CreateApiKeyIn
 
 from ...accounts.models import ApiKey
 from ...core.models import AuditLog, User
-from ...tenants.models import Tenant, TenantUser
 from ..schemas import ErrorResponse, SuccessResponse
 
 router = Router(tags=["Authentication"])
@@ -45,7 +43,6 @@ class AuthBearer(HttpBearer):
             try:
                 user = User.objects.get(id=user_id, is_active=True)
                 request.user = user
-                request.tenant_id = payload.get("tenant_id")
                 return user
             except User.DoesNotExist:
                 return None
@@ -64,7 +61,7 @@ class AuthBearer(HttpBearer):
         codes_5xx: ErrorResponse,
     },
 )
-def login_user(request, email: str, password: str, tenant_subdomain: str = None):
+def login_user(request, email: str, password: str):
     """User login endpoint with JWT token generation."""
     try:
         # Authenticate user
@@ -84,46 +81,21 @@ def login_user(request, email: str, password: str, tenant_subdomain: str = None)
                 "error": "Account is temporarily locked due to failed login attempts",
             }, 423
 
-        # Resolve tenant
-        tenant = None
-        if tenant_subdomain:
-            try:
-                tenant = Tenant.objects.get(subdomain=tenant_subdomain, is_active=True)
-            except Tenant.DoesNotExist:
-                return {
-                    "success": False,
-                    "message": "Invalid tenant",
-                    "error": "Tenant not found or inactive",
-                }, 404
-
-        # Check user membership in tenant
-        if tenant:
-            try:
-                TenantUser.objects.get(user=user, tenant=tenant, is_active=True)
-            except TenantUser.DoesNotExist:
-                return {
-                    "success": False,
-                    "message": "Access denied",
-                    "error": "User is not a member of this tenant",
-                }, 403
-
         # Reset failed login attempts
         user.reset_failed_login()
 
         # Generate JWT tokens
-        access_token = _generate_access_token(user, tenant)
-        refresh_token = _generate_refresh_token(user, tenant)
+        access_token = _generate_access_token(user)
+        refresh_token = _generate_refresh_token(user)
 
         # Log successful login
         AuditLog.objects.create(
-            tenant_id=tenant.id if tenant else None,
             user=user,
             action="LOGIN",
             resource_type="USER",
             resource_id=str(user.id),
             ip_address=_get_client_ip(request),
             user_agent=request.META.get("HTTP_USER_AGENT", ""),
-            metadata={"tenant_subdomain": tenant_subdomain},
         )
 
         return {
@@ -140,15 +112,6 @@ def login_user(request, email: str, password: str, tenant_subdomain: str = None)
                     "last_name": user.last_name,
                     "two_factor_enabled": user.two_factor_enabled,
                 },
-                "tenant": (
-                    {
-                        "id": str(tenant.id),
-                        "name": tenant.name,
-                        "subdomain": tenant.subdomain,
-                    }
-                    if tenant
-                    else None
-                ),
             },
         }
 
@@ -195,15 +158,8 @@ def refresh_token(request, refresh_token: str):
                 "error": "User account not found or inactive",
             }, 404
 
-        # Get tenant from token
-        tenant_id = payload.get("tenant_id")
-        tenant = None
-        if tenant_id:
-            with contextlib.suppress(Tenant.DoesNotExist):
-                tenant = Tenant.objects.get(id=tenant_id, is_active=True)
-
         # Generate new access token
-        new_access_token = _generate_access_token(user, tenant)
+        new_access_token = _generate_access_token(user)
 
         return {
             "success": True,
@@ -243,7 +199,6 @@ def logout_user(request):
 
         # Log logout
         AuditLog.objects.create(
-            tenant_id=getattr(request, "tenant_id", None),
             user=user,
             action="LOGOUT",
             resource_type="USER",
@@ -270,20 +225,6 @@ def get_current_user(request):
                 "error": "User not authenticated",
             }, 401
 
-        # Get tenant info
-        tenant_id = getattr(request, "tenant_id", None)
-        tenant = None
-        membership = None
-
-        if tenant_id:
-            try:
-                tenant = Tenant.objects.get(id=tenant_id, is_active=True)
-                membership = TenantUser.objects.get(
-                    user=user, tenant=tenant, is_active=True
-                )
-            except (Tenant.DoesNotExist, TenantUser.DoesNotExist):
-                pass
-
         return {
             "success": True,
             "data": {
@@ -305,27 +246,6 @@ def get_current_user(request):
                     ),
                     "created_at": user.created_at.isoformat(),
                 },
-                "tenant": (
-                    {
-                        "id": str(tenant.id),
-                        "name": tenant.name,
-                        "subdomain": tenant.subdomain,
-                    }
-                    if tenant
-                    else None
-                ),
-                "membership": (
-                    {
-                        "role": membership.role,
-                        "can_trade": membership.can_trade,
-                        "can_manage_users": membership.can_manage_users,
-                        "can_manage_strategies": membership.can_manage_strategies,
-                        "can_view_reports": membership.can_view_reports,
-                        "can_manage_risk": membership.can_manage_risk,
-                    }
-                    if membership
-                    else None
-                ),
             },
         }
 
@@ -344,7 +264,6 @@ def register_user(
     password: str,
     first_name: str,
     last_name: str,
-    tenant_subdomain: str = None,
     phone_number: str = "",
 ):
     """User registration endpoint."""
@@ -376,32 +295,14 @@ def register_user(
                 email_verified=False,  # Require email verification
             )
 
-            # Add to tenant if specified
-            tenant = None
-            if tenant_subdomain:
-                try:
-                    tenant = Tenant.objects.get(
-                        subdomain=tenant_subdomain, is_active=True
-                    )
-                    TenantUser.objects.create(
-                        user=user,
-                        tenant=tenant,
-                        role="VIEWER",  # Default role
-                        can_view_reports=True,
-                    )
-                except Tenant.DoesNotExist:
-                    pass
-
             # Log registration
             AuditLog.objects.create(
-                tenant_id=tenant.id if tenant else None,
                 user=user,
                 action="CREATE",
                 resource_type="USER",
                 resource_id=str(user.id),
                 ip_address=_get_client_ip(request),
                 user_agent=request.META.get("HTTP_USER_AGENT", ""),
-                metadata={"tenant_subdomain": tenant_subdomain},
             )
 
         return {
@@ -432,16 +333,7 @@ def create_api_key(request, payload: CreateApiKeyIn):
             "error": "User not authenticated",
         }, 401
 
-    tenant_id = getattr(request, "tenant_id", None)
-    if not tenant_id:
-        return {
-            "success": False,
-            "message": "No tenant context",
-            "error": "Tenant context required for API key creation",
-        }, 400
-
     api_key = ApiKey.create_with_key(
-        tenant_id=tenant_id,
         user=user,
         name=payload.name,
         scopes=payload.scopes,
@@ -449,7 +341,6 @@ def create_api_key(request, payload: CreateApiKeyIn):
     )
 
     AuditLog.objects.create(
-        tenant_id=tenant_id,
         user=user,
         action="CREATE",
         resource_type="API_KEY",
@@ -488,18 +379,8 @@ def list_api_keys(request):
                 "error": "User not authenticated",
             }, 401
 
-        tenant_id = getattr(request, "tenant_id", None)
-        if not tenant_id:
-            return {
-                "success": False,
-                "message": "No tenant context",
-                "error": "Tenant context required",
-            }, 400
-
         # Get user's API keys
-        api_keys = ApiKey.objects.filter(
-            tenant_id=tenant_id, user=user, is_active=True
-        ).order_by("-created_at")
+        api_keys = ApiKey.objects.filter().order_by("-created_at")
 
         return {
             "success": True,
@@ -543,19 +424,9 @@ def delete_api_key(request, api_key_id: str):
                 "error": "User not authenticated",
             }, 401
 
-        tenant_id = getattr(request, "tenant_id", None)
-        if not tenant_id:
-            return {
-                "success": False,
-                "message": "No tenant context",
-                "error": "Tenant context required",
-            }, 400
-
         # Get and delete API key
         try:
-            api_key = ApiKey.objects.get(
-                id=api_key_id, tenant_id=tenant_id, user=user, is_active=True
-            )
+            api_key = ApiKey.objects.get(id=api_key_id, user=user, is_active=True)
         except ApiKey.DoesNotExist:
             return {
                 "success": False,
@@ -569,7 +440,6 @@ def delete_api_key(request, api_key_id: str):
 
         # Log deletion
         AuditLog.objects.create(
-            tenant_id=tenant_id,
             user=user,
             action="DELETE",
             resource_type="API_KEY",
@@ -592,12 +462,11 @@ def delete_api_key(request, api_key_id: str):
 # Helper functions
 
 
-def _generate_access_token(user: User, tenant: Tenant = None) -> str:
+def _generate_access_token(user: User) -> str:
     """Generate JWT access token."""
     payload = {
         "user_id": str(user.id),
         "email": user.email,
-        "tenant_id": str(tenant.id) if tenant else None,
         "exp": datetime.utcnow() + settings.JWT_ACCESS_TOKEN_LIFETIME,
         "iat": datetime.utcnow(),
         "type": "access",
@@ -605,11 +474,10 @@ def _generate_access_token(user: User, tenant: Tenant = None) -> str:
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
 
 
-def _generate_refresh_token(user: User, tenant: Tenant = None) -> str:
+def _generate_refresh_token(user: User) -> str:
     """Generate JWT refresh token."""
     payload = {
         "user_id": str(user.id),
-        "tenant_id": str(tenant.id) if tenant else None,
         "exp": datetime.utcnow() + settings.JWT_REFRESH_TOKEN_LIFETIME,
         "iat": datetime.utcnow(),
         "type": "refresh",

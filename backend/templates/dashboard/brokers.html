@@ -5,9 +5,78 @@
 {% block content %}
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-2xl font-bold text-slate-800">Broker Connections</h1>
-    <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-700 transition-colors">
-        <i class="fas fa-plus mr-2"></i> ADD BROKER
-    </button>
+</div>
+
+<!-- Broker Provisioning Tools -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+    <!-- Add API Key Form -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-50">
+            <h3 class="font-bold text-slate-800 flex items-center">
+                <i class="fas fa-key text-amber-500 mr-2"></i> Add Deriv API Key
+            </h3>
+        </div>
+        <div class="p-6">
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_deriv_key">
+                <input type="password" name="deriv_token" placeholder="Enter Deriv token (e.g. kA8d2j...)" required
+                    class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button type="submit" class="w-full bg-slate-900 text-white px-6 py-3 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-800 transition-colors flex items-center justify-center">
+                    <i class="fas fa-plus-circle mr-2"></i> ATTACH TOKEN
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Demo Account Creator -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 flex items-center">
+                <i class="fas fa-flask text-indigo-500 mr-2"></i> Provision Demo Account
+            </h3>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">Deriv Protocol</span>
+        </div>
+        <div class="p-6">
+            <div id="demo-step-1">
+                <p class="text-[11px] text-slate-500 mb-4">Step 1: Request an account opening verification token to your email.</p>
+                <form action="{% url 'dashboard:broker_ops' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="request_verify">
+                    <input type="email" name="email" placeholder="Your Deriv Email" required
+                        class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="submit" class="w-full border border-indigo-200 text-indigo-600 px-6 py-3 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors">
+                        SEND VERIFICATION CODE
+                    </button>
+                </form>
+            </div>
+
+            <div id="demo-step-2" class="mt-8 pt-8 border-t border-slate-100">
+                <p class="text-[11px] text-slate-500 mb-4">Step 2: Enter code from email and set a password.</p>
+                <form action="{% url 'dashboard:broker_ops' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_demo">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="text" name="code" placeholder="Verification Code" required
+                            class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="password" name="password" placeholder="Account Password" required
+                            class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </form>
+            </div>
+
+            <div id="demo-reset" class="mt-8 pt-8 border-t border-slate-100">
+                <p class="text-[11px] text-slate-500 mb-4">Reset existing demo balance to $10,000.</p>
+                <form action="{% url 'dashboard:broker_ops' %}" method="POST" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="topup_demo">
+                    <button type="submit" class="w-full bg-slate-100 text-slate-700 px-6 py-3 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">
+                        RESET DEMO BALANCE
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 gap-8">
@@ -46,9 +115,21 @@
                         </td>
                         <td class="px-6 py-4 font-mono text-xs text-slate-500">{{ conn.host_override|default:conn.broker.host }}</td>
                         <td class="px-6 py-4 text-slate-400 text-xs">{{ conn.updated_at|timesince }} ago</td>
-                        <td class="px-6 py-4 text-right space-x-2">
-                            <button class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest">Reconnect</button>
-                            <button class="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest">Edit</button>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end space-x-2">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reconnect">
+                                    <input type="hidden" name="connection_id" value="{{ conn.id }}">
+                                    <button type="submit" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded">Reconnect</button>
+                                </form>
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="disconnect">
+                                    <input type="hidden" name="connection_id" value="{{ conn.id }}">
+                                    <button type="submit" class="text-[10px] font-bold text-rose-600 hover:text-rose-800 uppercase tracking-widest bg-rose-50 px-2 py-1 rounded">Disconnect</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -81,9 +162,32 @@
                         <td class="px-6 py-4 font-bold text-slate-900">{{ acc.account_number }}</td>
                         <td class="px-6 py-4 text-slate-500 text-xs uppercase font-medium">{{ acc.account_type }}</td>
                         <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ acc.currency }}</td>
-                        <td class="px-6 py-4 text-right font-bold text-slate-900">${{ acc.day_trading_buying_power|default:"---" }}</td>
+                        <td class="px-6 py-4 text-right font-bold text-slate-900">
+                            {% if acc.day_trading_buying_power is not None %}
+                                ${{ acc.day_trading_buying_power }}
+                            {% else %}
+                                $---
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-4 text-right">
-                            <button class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest">Sync Balance</button>
+                            <form method="POST" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="set_active_account">
+                                <input type="hidden" name="account_id" value="{{ acc.account_number }}">
+                                {% if active_trading_account == acc.account_number %}
+                                <button type="button" class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded cursor-default border border-emerald-200 uppercase tracking-widest">
+                                    <i class="fas fa-check-circle mr-1"></i> ACTIVE TARGET
+                                </button>
+                                {% else %}
+                                <button type="submit" class="text-[10px] font-bold text-slate-600 hover:text-indigo-800 uppercase tracking-widest bg-slate-100 hover:bg-indigo-50 px-2 py-1 rounded transition-colors">Set Target</button>
+                                {% endif %}
+                            </form>
+                            <form method="POST" class="inline-block ml-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="sync_accounts">
+                                <input type="hidden" name="connection_id" value="{{ acc.broker_connection.id }}">
+                                <button type="submit" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded">Sync</button>
+                            </form>
                         </td>
                     </tr>
                     {% empty %}

@@ -30,18 +30,6 @@ class MarketSubscription(BaseModel):
     ]
 
     # Core Information
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="market_subscriptions",
-        db_index=True,
-    )
-    user = models.ForeignKey(
-        "core.User",
-        on_delete=models.CASCADE,
-        related_name="market_subscriptions",
-        db_index=True,
-    )
     instrument = models.ForeignKey(
         "oms.Instrument",
         on_delete=models.CASCADE,
@@ -86,13 +74,12 @@ class MarketSubscription(BaseModel):
         db_table = "marketdata_market_subscription"
         verbose_name = _("market subscription")
         verbose_name_plural = _("market subscriptions")
-        unique_together = ["tenant", "instrument", "subscription_type"]
+        unique_together = ["instrument", "subscription_type"]
         indexes = [
             models.Index(fields=["subscription_type"]),
             models.Index(fields=["status"]),
             models.Index(fields=["is_active"]),
             models.Index(fields=["last_data_received"]),
-            models.Index(fields=["user", "created_at"]),
         ]
 
     def __str__(self):
@@ -240,20 +227,6 @@ class MarketDataStream(BaseModel):
         ("ERROR", "Error"),
     ]
 
-    # Core Information
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="market_data_streams",
-        db_index=True,
-    )
-    user = models.ForeignKey(
-        "core.User",
-        on_delete=models.CASCADE,
-        related_name="market_data_streams",
-        db_index=True,
-    )
-
     # Stream Details
     name = models.CharField(max_length=200, db_index=True)
     stream_type = models.CharField(
@@ -287,14 +260,13 @@ class MarketDataStream(BaseModel):
         db_table = "marketdata_market_data_stream"
         verbose_name = _("market data stream")
         verbose_name_plural = _("market data streams")
-        unique_together = ["tenant", "name"]
+        unique_together = ["name"]
         indexes = [
             models.Index(fields=["name"]),
             models.Index(fields=["stream_type"]),
             models.Index(fields=["status"]),
             models.Index(fields=["is_active"]),
             models.Index(fields=["connection_id"]),
-            models.Index(fields=["user", "created_at"]),
         ]
 
     def __str__(self):

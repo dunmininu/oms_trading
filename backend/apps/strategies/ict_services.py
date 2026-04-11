@@ -30,8 +30,23 @@ class ICTSetupService:
             fvgs = []
             for i in range(len(df_bars) - 2):
                 b1 = df_bars.iloc[i]
+                b2 = df_bars.iloc[i + 1]
                 b3 = df_bars.iloc[i + 2]
-                if float(b3["low"]) > float(b1["high"]):
+
+                # Institutional Displacement Check: Candle 2 must be significant
+                body_2 = abs(float(b2["close"]) - float(b2["open"]))
+                avg_body = (
+                    df_bars.iloc[max(0, i - 5) : i + 1]
+                    .apply(lambda x: abs(float(x["close"]) - float(x["open"])), axis=1)
+                    .mean()
+                )
+
+                # Displacement requirement: Body of b2 > 1.3x previous avg body OR > 50% of its own range
+                is_displaced = body_2 > (avg_body * 1.3) or body_2 > (
+                    abs(float(b2["high"]) - float(b2["low"])) * 0.5
+                )
+
+                if float(b3["low"]) > float(b1["high"]) and is_displaced:
                     fvgs.append(
                         {
                             "type": "BULLISH",
@@ -40,7 +55,7 @@ class ICTSetupService:
                             "bottom": b1["high"],
                         }
                     )
-                elif float(b3["high"]) < float(b1["low"]):
+                elif float(b3["high"]) < float(b1["low"]) and is_displaced:
                     fvgs.append(
                         {
                             "type": "BEARISH",
@@ -67,25 +82,42 @@ class ICTSetupService:
             b2 = bars[i + 1]
             b3 = bars[i + 2]
 
-            # Bullish FVG
+            # Bullish FVG (Gap between B1 High and B3 Low)
             if b3.low_price > b1.high_price:
+                # Institutional SL: Bottom of the move (B1 Low)
+                sl = float(b1.low_price)
+                entry = float(b3.low_price)
+                risk = entry - sl
+                # Target at least 2:1 RR or use recent highs if we expand this
+                tp = entry + (risk * 2)
+
                 fvgs.append(
                     {
                         "type": "BULLISH",
                         "top": b3.low_price,
                         "bottom": b1.high_price,
+                        "sl_price": sl,
+                        "tp_price": tp,
                         "start_time": b2.start_time,
                         "instrument": instrument.symbol,
                     }
                 )
 
-            # Bearish FVG
+            # Bearish FVG (Gap between B1 Low and B3 High)
             elif b3.high_price < b1.low_price:
+                # Institutional SL: Top of the move (B1 High)
+                sl = float(b1.high_price)
+                entry = float(b3.high_price)
+                risk = sl - entry
+                tp = entry - (risk * 2)
+
                 fvgs.append(
                     {
                         "type": "BEARISH",
                         "top": b1.low_price,
                         "bottom": b3.high_price,
+                        "sl_price": sl,
+                        "tp_price": tp,
                         "start_time": b2.start_time,
                         "instrument": instrument.symbol,
                     }

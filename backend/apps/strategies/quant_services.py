@@ -52,6 +52,22 @@ class QuantService:
         return float(val) if not np.isnan(val) else 0.0
 
     @classmethod
+    def calculate_atr(cls, df_bars: pd.DataFrame, period: int = 14) -> float:
+        """Calculate Average True Range (ATR) using Pandas."""
+        if len(df_bars) < period:
+            return 0.0
+
+        high_low = df_bars["high"] - df_bars["low"]
+        high_cp = (df_bars["high"] - df_bars["close"].shift()).abs()
+        low_cp = (df_bars["low"] - df_bars["close"].shift()).abs()
+
+        tr = pd.concat([high_low, high_cp, low_cp], axis=1).max(axis=1)
+        atr = tr.rolling(window=period).mean()
+
+        val = atr.iloc[-1]
+        return float(val) if not np.isnan(val) else 0.0
+
+    @classmethod
     def black_scholes(
         cls,
         S: float,
@@ -96,9 +112,9 @@ class QuantService:
         z_score = cls.calculate_z_score(prices)
 
         regime = "NEUTRAL"
-        if rsi > 70:
+        if rsi > 65:
             regime = "OVERBOUGHT"
-        elif rsi < 30:
+        elif rsi < 35:
             regime = "OVERSOLD"
 
         return {"rsi": rsi, "z_score": z_score, "regime": regime}
@@ -110,8 +126,11 @@ class QuantService:
         rsi = cls.calculate_rsi(prices)
         z_score = cls.calculate_z_score(prices)
         regime = "NEUTRAL"
-        if rsi > 70:
+        if rsi > 65:
             regime = "OVERBOUGHT"
-        elif rsi < 30:
+        elif rsi < 35:
             regime = "OVERSOLD"
-        return {"rsi": rsi, "z_score": z_score, "regime": regime}
+
+        atr = cls.calculate_atr(df_bars)
+
+        return {"rsi": rsi, "z_score": z_score, "regime": regime, "atr": atr}

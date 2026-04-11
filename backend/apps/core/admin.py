@@ -107,7 +107,6 @@ class AuditLogAdmin(admin.ModelAdmin):
         "resource_type",
         "resource_id",
         "user",
-        "tenant_id",
         "ip_address",
         "created_at",
     ]
@@ -133,7 +132,7 @@ class AuditLogAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             _("Basic Information"),
-            {"fields": ("action", "resource_type", "resource_id", "tenant", "user")},
+            {"fields": ("action", "resource_type", "resource_id", "user")},
         ),
         (
             _("Values"),
@@ -155,7 +154,7 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """Optimize queryset with select_related."""
-        return super().get_queryset(request).select_related("user", "tenant")
+        return super().get_queryset(request).select_related("user")
 
     def has_add_permission(self, request):
         """Audit logs should not be manually created."""

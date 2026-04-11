@@ -24,8 +24,6 @@ def order_post_save_handler(sender, instance, created, **kwargs):
         if created:
             # Log order creation
             AuditLog.objects.create(
-                tenant_id=instance.tenant_id,
-                user=instance.user,
                 action="ORDER_CREATED",
                 resource_type="Order",
                 resource_id=str(instance.id),
@@ -44,8 +42,6 @@ def order_post_save_handler(sender, instance, created, **kwargs):
         else:
             # Log order updates
             AuditLog.objects.create(
-                tenant_id=instance.tenant_id,
-                user=instance.user,
                 action="ORDER_UPDATED",
                 resource_type="Order",
                 resource_id=str(instance.id),
@@ -107,8 +103,6 @@ def execution_post_save_handler(sender, instance, created, **kwargs):
         if created:
             # Log execution
             AuditLog.objects.create(
-                tenant_id=instance.tenant_id,
-                user=instance.order.user,
                 action="EXECUTION_CREATED",
                 resource_type="Execution",
                 resource_id=str(instance.id),
@@ -161,11 +155,9 @@ def update_position_from_execution(execution):
             order = execution.order
             instrument = order.instrument
             broker_account = order.broker_account
-            tenant = order.tenant
 
             # Get or create position
             position, created = Position.objects.get_or_create(
-                tenant=tenant,
                 broker_account=broker_account,
                 instrument=instrument,
                 defaults={

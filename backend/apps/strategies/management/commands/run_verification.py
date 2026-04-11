@@ -14,7 +14,6 @@ from apps.brokers.services import BrokerService
 from apps.core.models import User
 from apps.marketdata.services import MarketDataService
 from apps.oms.services import OMSService
-from apps.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +29,9 @@ class Command(BaseCommand):
         self.stdout.write("Starting Paper Trade Verification...")
 
         # 1. Setup Environment
-        tenant = Tenant.objects.get(slug="default")
+        # 1. Setup Environment
         user = User.objects.get(email="admin@omstrading.com")
-        conn = BrokerConnection.objects.get(tenant=tenant, name="Main IB Connection")
+        conn = BrokerConnection.objects.get(name="Main IB Connection")
 
         # 2. Ensure instruments exist
         gbpjpy, btcusd = await MarketDataService.ensure_instruments()
@@ -56,7 +55,6 @@ class Command(BaseCommand):
         # 5. Place a small test order (0.001 BTC)
         self.stdout.write("Placing Market BUY order for 0.001 BTCUSD...")
         order = await OMSService.place_order(
-            tenant=tenant,
             user=user,
             broker_account=account,
             instrument=btcusd,

@@ -16,7 +16,6 @@ from apps.marketdata.services import MarketDataService
 from apps.oms.services import OMSService
 from apps.strategies.grading_services import GradingService
 from apps.strategies.risk_services import RiskManagementService
-from apps.tenants.models import Tenant
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +33,8 @@ class Command(BaseCommand):
         )
 
         # 1. Setup Environment
-        tenant = Tenant.objects.get(slug="default")
         user = User.objects.get(email="admin@omstrading.com")
-        conn = BrokerConnection.objects.get(tenant=tenant, name="Main IB Connection")
+        conn = BrokerConnection.objects.get(name="Main IB Connection")
 
         # 2. Ensure instruments exist and fetch data
         gbpjpy, btcusd = await MarketDataService.ensure_instruments()
@@ -90,7 +88,6 @@ class Command(BaseCommand):
             # 5. Place the trade
             self.stdout.write("Placing Order...")
             order = await OMSService.place_order(
-                tenant=tenant,
                 user=user,
                 broker_account=BrokerAccount.objects.get(broker_connection=conn),
                 instrument=btcusd,

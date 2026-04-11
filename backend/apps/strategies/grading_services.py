@@ -6,7 +6,6 @@ import logging
 from typing import Any
 
 from apps.oms.models import Instrument
-from apps.tenants.models import Tenant
 
 from .ict_services import ICTSetupService
 from .learning_services import LearningService
@@ -24,7 +23,6 @@ class GradingService:
         cls,
         instrument: Instrument,
         interval: str,
-        tenant: Tenant = None,
         backtest_setup=None,
         backtest_quant=None,
         backtest_ml_prob=None,
@@ -33,12 +31,18 @@ class GradingService:
         Grade a setup based on confluence.
         """
         if backtest_setup:
-            # Backtest fast-path
+            # Backtest fast-path logic
             score = 1
-            if backtest_ml_prob > 0.6:
+            if backtest_ml_prob >= 0.6:
                 score += 1
+            # Check for strong trend confirmation
             if backtest_quant["regime"] != "NEUTRAL":
                 score += 1
+            # Add Z-Score magnitude as a confluence factor
+            if abs(backtest_quant.get("z_score", 0)) > 1.5:
+                score += 1
+
+            # Grade mapping: 3+ = A+, 2 = B, 1 = C
             grade = "A+" if score >= 3 else "B" if score == 2 else "C"
             return {"grade": grade, "score": score}
 
@@ -91,11 +95,9 @@ class GradingService:
                 score += 1
 
         # 5. Apply Learning-based adjustment
-        if tenant and has_ict_signal:
+        if has_ict_signal:
             setup_type = "FVG" if fvgs else "SWEEP"
-            adj = LearningService.get_setup_adjustment(
-                tenant, instrument, setup_type, interval
-            )
+            adj = LearningService.get_setup_adjustment(instrument, setup_type, interval)
             score += adj
             logger.info(f"Learning adjustment for {setup_type}: {adj}")
 
@@ -140,5 +142,19 @@ class GradingService:
                 else "SHORT"
                 if latest_ict_bearish
                 else "NONE"
+            ),
+            "sl_price": (
+                fvgs[-1].get("sl_price")
+                if fvgs
+                else sweeps[-1].get("sl_price")
+                if sweeps
+                else None
+            ),
+            "tp_price": (
+                fvgs[-1].get("tp_price")
+                if fvgs
+                else sweeps[-1].get("tp_price")
+                if sweeps
+                else None
             ),
         }
