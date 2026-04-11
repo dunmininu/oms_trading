@@ -145,7 +145,6 @@ class AuditLogMiddleware:
 
             # Create audit log entry
             AuditLog.objects.create(
-                tenant_id=tenant_id,
                 user_id=user_id,
                 action=action,
                 resource_type="API_ENDPOINT",

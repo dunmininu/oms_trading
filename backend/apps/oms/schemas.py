@@ -93,14 +93,16 @@ class OrderCreateSchema(Schema):
     metadata: dict[str, Any] | None = Field(description="Additional metadata")
 
     @validator("price")
-    def validate_price(self, v, values):
+    @classmethod
+    def validate_price(cls, v, values):
         """Validate price is provided for LIMIT orders."""
         if values.get("order_type") in ["LIMIT", "STOP_LIMIT"] and v is None:
             raise ValueError("Price is required for LIMIT orders")
         return v
 
     @validator("stop_price")
-    def validate_stop_price(self, v, values):
+    @classmethod
+    def validate_stop_price(cls, v, values):
         """Validate stop price is provided for STOP orders."""
         if values.get("order_type") in ["STOP", "STOP_LIMIT"] and v is None:
             raise ValueError("Stop price is required for STOP orders")

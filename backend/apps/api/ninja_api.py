@@ -8,7 +8,7 @@ from django.conf import settings
 from ninja import NinjaAPI
 
 from .exceptions import APIExceptionHandler
-from .v1 import auth, brokers, events, marketdata, oms, strategies, system, tenants
+from .v1 import auth, brokers, events, marketdata, oms, strategies, system
 from .v1.auth import AuthBearer
 
 # Main API instance
@@ -27,13 +27,12 @@ api.add_exception_handler(Exception, APIExceptionHandler.handle_exception)
 
 # Note: Django Ninja doesn't support add_middleware like Django
 # Middleware is handled at the Django level in settings.py
-# TenantMiddleware and RateLimitMiddleware are configured in Django settings
+# RateLimitMiddleware are configured in Django settings
 
 # Include app-specific API routes
 
 # Register v1 API routes
 api.add_router("/v1/auth/", auth.router, tags=["Authentication"])
-api.add_router("/v1/tenants/", tenants.router, tags=["Tenant Management"])
 api.add_router("/v1/brokers/", brokers.router, tags=["Broker Integration"])
 api.add_router("/v1/marketdata/", marketdata.router, tags=["Market Data"])
 api.add_router("/v1/oms/", oms.router, tags=["Order Management"])

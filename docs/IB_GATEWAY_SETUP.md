@@ -37,5 +37,9 @@ python backend/manage.py run_verification
 ```
 
 ---
+<<<<<<< HEAD
 **Note for Nigeria-based users:**
+=======
+**Note for Nigeria-based users:**
+>>>>>>> origin/main
 Interactive Brokers is generally available in Nigeria. Ensure you have a stable internet connection as the bot requires a persistent socket connection to the IB Gateway to receive market data and status updates.

@@ -20,7 +20,6 @@ def broker_connection_post_save_handler(sender, instance, created, **kwargs):
         if created:
             # Log connection creation
             BrokerConnectionLog.objects.create(
-                tenant=instance.tenant,
                 broker_connection=instance,
                 event_type="CONNECT",
                 message=f"Broker connection '{instance.name}' created",
@@ -36,13 +35,10 @@ def broker_connection_post_save_handler(sender, instance, created, **kwargs):
                     ),
                 },
             )
-            logger.info(
-                f"Broker connection '{instance.name}' created for tenant {instance.tenant.name}"
-            )
+            logger.info(f"Broker connection '{instance.name}' created")
         else:
             # Log connection updates
             BrokerConnectionLog.objects.create(
-                tenant=instance.tenant,
                 broker_connection=instance,
                 event_type="API_CALL",
                 message=f"Broker connection '{instance.name}' updated",
@@ -61,9 +57,7 @@ def broker_connection_post_save_handler(sender, instance, created, **kwargs):
                     ),
                 },
             )
-            logger.info(
-                f"Broker connection '{instance.name}' updated for tenant {instance.tenant.name}"
-            )
+            logger.info(f"Broker connection '{instance.name}' updated")
 
     except Exception as e:
         logger.error(
@@ -82,7 +76,6 @@ def broker_connection_pre_save_handler(sender, instance, **kwargs):
             if old_instance.status != instance.status:
                 # Log status change
                 BrokerConnectionLog.objects.create(
-                    tenant=instance.tenant,
                     broker_connection=instance,
                     event_type=(
                         "CONNECT" if instance.status == "CONNECTED" else "DISCONNECT"
@@ -121,7 +114,6 @@ def broker_connection_post_delete_handler(sender, instance, **kwargs):
     try:
         # Log connection deletion
         BrokerConnectionLog.objects.create(
-            tenant=instance.tenant,
             broker_connection=instance,
             event_type="DISCONNECT",
             message=f"Broker connection '{instance.name}' deleted",
@@ -132,9 +124,7 @@ def broker_connection_post_delete_handler(sender, instance, **kwargs):
             },
         )
 
-        logger.info(
-            f"Broker connection '{instance.name}' deleted for tenant {instance.tenant.name}"
-        )
+        logger.info(f"Broker connection '{instance.name}' deleted")
 
     except Exception as e:
         logger.error(
@@ -147,13 +137,9 @@ def broker_account_post_save_handler(sender, instance, created, **kwargs):
     """Handle broker account creation and updates."""
     try:
         if created:
-            logger.info(
-                f"Broker account '{instance.account_name}' created for tenant {instance.tenant.name}"
-            )
+            logger.info(f"Broker account '{instance.account_name}' created")
         else:
-            logger.info(
-                f"Broker account '{instance.account_name}' updated for tenant {instance.tenant.name}"
-            )
+            logger.info(f"Broker account '{instance.account_name}' updated")
 
     except Exception as e:
         logger.error(
@@ -165,9 +151,7 @@ def broker_account_post_save_handler(sender, instance, created, **kwargs):
 def broker_account_post_delete_handler(sender, instance, **kwargs):
     """Handle broker account deletion."""
     try:
-        logger.info(
-            f"Broker account '{instance.account_name}' deleted for tenant {instance.tenant.name}"
-        )
+        logger.info(f"Broker account '{instance.account_name}' deleted")
 
     except Exception as e:
         logger.error(

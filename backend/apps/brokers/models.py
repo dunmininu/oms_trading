@@ -15,6 +15,18 @@ class Broker(BaseModel):
     """Broker model for managing different broker connections."""
 
     BROKER_TYPE_CHOICES = [
+<<<<<<< HEAD
+        ('INTERACTIVE_BROKERS', 'Interactive Brokers'),
+        ('DERIV', 'Deriv'),
+        ('TD_AMERITRADE', 'TD Ameritrade'),
+        ('CHARLES_SCHWAB', 'Charles Schwab'),
+        ('ETRADE', 'E*TRADE'),
+        ('FIDELITY', 'Fidelity'),
+        ('ROBINHOOD', 'Robinhood'),
+        ('ALPACA', 'Alpaca'),
+        ('TRADIER', 'Tradier'),
+        ('CUSTOM', 'Custom'),
+=======
         ("INTERACTIVE_BROKERS", "Interactive Brokers"),
         ("DERIV", "Deriv"),
         ("TD_AMERITRADE", "TD Ameritrade"),
@@ -25,6 +37,7 @@ class Broker(BaseModel):
         ("ALPACA", "Alpaca"),
         ("TRADIER", "Tradier"),
         ("CUSTOM", "Custom"),
+>>>>>>> origin/main
     ]
 
     name = models.CharField(max_length=100, unique=True, db_index=True)
@@ -80,12 +93,6 @@ class BrokerConnection(BaseModel):
         ("MAINTENANCE", "Maintenance"),
     ]
 
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="broker_connections",
-        db_index=True,
-    )
     broker = models.ForeignKey(
         Broker, on_delete=models.CASCADE, related_name="connections", db_index=True
     )
@@ -148,16 +155,16 @@ class BrokerConnection(BaseModel):
         db_table = "brokers_broker_connection"
         verbose_name = _("broker connection")
         verbose_name_plural = _("broker connections")
-        unique_together = ["tenant", "broker", "name"]
+        unique_together = ["broker", "name"]
         indexes = [
-            models.Index(fields=["tenant", "broker"]),
-            models.Index(fields=["tenant", "status"]),
+            models.Index(fields=["broker"]),
+            models.Index(fields=["status"]),
             models.Index(fields=["status", "last_connected"]),
             models.Index(fields=["broker", "status"]),
         ]
 
     def __str__(self):
-        return f"{self.tenant.name} - {self.broker.name} ({self.name})"
+        return f"{self.broker.name} ({self.name})"
 
     @property
     def is_connected(self):
@@ -167,7 +174,7 @@ class BrokerConnection(BaseModel):
     @property
     def can_trade(self):
         """Check if the connection can be used for trading."""
-        return self.is_connected and self.is_active and self.tenant.can_use_system
+        return self.is_connected and self.is_active
 
     def get_connection_settings(self):
         """Get connection settings with overrides."""
@@ -208,12 +215,6 @@ class BrokerAccount(BaseModel):
         ("PENDING", "Pending"),
     ]
 
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="broker_accounts",
-        db_index=True,
-    )
     broker_connection = models.ForeignKey(
         BrokerConnection,
         on_delete=models.CASCADE,
@@ -279,10 +280,10 @@ class BrokerAccount(BaseModel):
         db_table = "brokers_broker_account"
         verbose_name = _("broker account")
         verbose_name_plural = _("broker accounts")
-        unique_together = ["tenant", "broker_connection", "account_number"]
+        unique_together = ["broker_connection", "account_number"]
         indexes = [
-            models.Index(fields=["tenant", "broker_connection"]),
-            models.Index(fields=["tenant", "status"]),
+            models.Index(fields=["broker_connection"]),
+            models.Index(fields=["status"]),
             models.Index(fields=["account_number"]),
             models.Index(fields=["status", "can_trade_stocks"]),
         ]
@@ -293,11 +294,7 @@ class BrokerAccount(BaseModel):
     @property
     def can_trade(self):
         """Check if the account can be used for trading."""
-        return (
-            self.status == "ACTIVE"
-            and self.broker_connection.can_trade
-            and self.tenant.can_use_system
-        )
+        return self.status == "ACTIVE" and self.broker_connection.can_trade
 
     def get_trading_permissions(self):
         """Get available trading permissions."""
@@ -335,12 +332,6 @@ class BrokerConnectionLog(BaseModel):
         ("EXECUTION", "Execution"),
     ]
 
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="broker_connection_logs",
-        db_index=True,
-    )
     broker_connection = models.ForeignKey(
         BrokerConnection,
         on_delete=models.CASCADE,
@@ -382,8 +373,8 @@ class BrokerConnectionLog(BaseModel):
         verbose_name = _("broker connection log")
         verbose_name_plural = _("broker connection logs")
         indexes = [
-            models.Index(fields=["tenant", "broker_connection"]),
-            models.Index(fields=["tenant", "event_type"]),
+            models.Index(fields=["broker_connection"]),
+            models.Index(fields=["event_type"]),
             models.Index(fields=["event_type", "created_at"]),
             models.Index(fields=["level", "created_at"]),
         ]

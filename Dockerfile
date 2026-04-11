@@ -24,9 +24,15 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements and install Python dependencies
+<<<<<<< HEAD
+COPY requirements.txt ./
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install -r requirements.txt
+=======
 COPY requirements/ ./requirements/
 RUN pip install --upgrade pip setuptools wheel \
     && pip install -r requirements/prod.txt
+>>>>>>> origin/main
 
 # Copy application code for runtime
 COPY backend/ ./backend/

@@ -2,6 +2,16 @@
 Enhanced Interactive Brokers client using ib_insync.
 """
 
+<<<<<<< HEAD
+import asyncio
+import logging
+from typing import Optional, List, Callable, Any
+from ib_insync import IB, Contract, Order, Stock, Forex, Crypto, Ticker, Fill
+import eventkit as ek
+
+logger = logging.getLogger(__name__)
+
+=======
 import logging
 from typing import Any
 
@@ -11,19 +21,29 @@ from ib_insync import IB, Contract, Fill, Order, Ticker
 logger = logging.getLogger(__name__)
 
 
+>>>>>>> origin/main
 class IBClient:
     """
     Enhanced IB client with improved connection management and event handling.
     """
+<<<<<<< HEAD
+
+    def __init__(self, host: str = '127.0.0.1', port: int = 7497, client_id: int = 1):
+=======
 
     def __init__(self, host: str = "127.0.0.1", port: int = 7497, client_id: int = 1):
+>>>>>>> origin/main
         self.host = host
         self.port = port
         self.client_id = client_id
         self.ib = IB()
         self._reconnect_delay = 5
         self._max_reconnect_attempts = 5
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> origin/main
         # Events
         self.connected_event = ek.Event()
         self.disconnected_event = ek.Event()
@@ -31,7 +51,11 @@ class IBClient:
         self.order_status_event = ek.Event()
         self.exec_details_event = ek.Event()
         self.pending_tickers_event = ek.Event()
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> origin/main
         # Setup ib_insync callbacks
         self.ib.connectedEvent += self._on_connected
         self.ib.disconnectedEvent += self._on_disconnected
@@ -43,9 +67,13 @@ class IBClient:
     async def connect(self) -> bool:
         """Connect to IB Gateway/TWS."""
         try:
+<<<<<<< HEAD
+            logger.info(f"Connecting to IB at {self.host}:{self.port} with client_id {self.client_id}")
+=======
             logger.info(
                 f"Connecting to IB at {self.host}:{self.port} with client_id {self.client_id}"
             )
+>>>>>>> origin/main
             await self.ib.connectAsync(self.host, self.port, self.client_id)
             return True
         except Exception as e:
@@ -83,7 +111,11 @@ class IBClient:
         logger.info(f"Execution Details: {fill.execution.execId}")
         self.exec_details_event.emit(trade, fill)
 
+<<<<<<< HEAD
+    def _on_pending_tickers(self, tickers: List[Ticker]):
+=======
     def _on_pending_tickers(self, tickers: list[Ticker]):
+>>>>>>> origin/main
         self.pending_tickers_event.emit(tickers)
 
     # Utilities
@@ -99,6 +131,9 @@ class IBClient:
         """Cancel an order."""
         return self.ib.cancelOrder(order)
 
+<<<<<<< HEAD
+    async def req_historical_data(self, contract: Contract, endDateTime: str, durationStr: str, barSizeSetting: str, whatToShow: str, useRTH: bool):
+=======
     async def req_historical_data(
         self,
         contract: Contract,
@@ -108,11 +143,17 @@ class IBClient:
         whatToShow: str,
         useRTH: bool,
     ):
+>>>>>>> origin/main
         """Request historical data."""
         return await self.ib.reqHistoricalDataAsync(
             contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH
         )
 
+<<<<<<< HEAD
+    def req_mkt_data(self, contract: Contract, genericTickList: str = '', snapshot: bool = False, regulatorySnapshot: bool = False):
+        """Request real-time market data."""
+        return self.ib.reqMktData(contract, genericTickList, snapshot, regulatorySnapshot)
+=======
     def req_mkt_data(
         self,
         contract: Contract,
@@ -124,3 +165,4 @@ class IBClient:
         return self.ib.reqMktData(
             contract, genericTickList, snapshot, regulatorySnapshot
         )
+>>>>>>> origin/main

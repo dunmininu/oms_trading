@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+<<<<<<< HEAD
 
 {% block title %}Backtest History - Sanusi OMS{% endblock %}
 
@@ -44,4 +45,345 @@
         </tbody>
     </table>
 </div>
+=======
+{% load humanize %}
+
+{% block title %}Backtests - Fleet Ops{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <header class="flex justify-between items-center bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-xl">
+        <div>
+            <h1 class="text-3xl border-l-4 border-blue-500 pl-4 font-bold text-white tracking-tight">Strategy Backtesting</h1>
+            <p class="text-slate-400 mt-1 pl-5">Configure simulation spans, pull fresh ticks, and evaluate edge metrics.</p>
+        </div>
+    </header>
+
+    {% if messages %}
+    <div class="space-y-3">
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded border {% if message.tags == 'error' %}border-red-500 bg-red-900/30 text-red-200{% elif message.tags == 'warning' %}border-yellow-500 bg-yellow-900/30 text-yellow-200{% else %}border-emerald-500 bg-emerald-900/30 text-emerald-200{% endif %}">
+            <p>{{ message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Market Data Inventory -->
+    <div class="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-700 bg-slate-900/30">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fas fa-database text-blue-400"></i> Local Market Data Inventory
+            </h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
+            {% for inst in available_instruments %}
+                <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 hover:border-blue-500/30 transition-colors">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-slate-500 tracking-wider uppercase">{{ inst.name }}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">15M</span>
+                    </div>
+                    <div class="text-xl font-bold text-white mb-1">
+                        {{ inst.stats.count|default:"0"|intcomma }} <span class="text-[10px] text-slate-500 font-normal">Bars</span>
+                    </div>
+                    {% if inst.stats %}
+                    <div class="text-[9px] text-slate-400 flex flex-col gap-0.5 mt-2 border-t border-slate-800 pt-2">
+                        <span class="flex justify-between"><span>Start:</span> <span class="text-slate-200">{{ inst.stats.start|date:"Y-m-d" }}</span></span>
+                        <span class="flex justify-between"><span>End:</span> <span class="text-slate-200">{{ inst.stats.end|date:"Y-m-d" }}</span></span>
+                    </div>
+                    {% else %}
+                    <div class="text-[9px] text-rose-400/60 italic mt-2 pt-2 border-t border-slate-800">
+                        No local data synced.
+                    </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Pull Data Card -->
+        <div class="bg-slate-800 rounded-lg p-6 border border-slate-700">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-1">1. Pull Market Data</h2>
+                    <p class="text-sm text-slate-400">Force a fetch of 15-min OHLC history from Deriv.</p>
+                </div>
+                <form method="POST" action="{% url 'dashboard:backtests' %}" class="inline-block">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="sync_instruments">
+                    <button type="submit" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 border border-emerald-500/30 font-medium py-1.5 px-3 rounded text-sm transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Sync Symbols
+                    </button>
+                </form>
+            </div>
+
+            <form method="POST" action="{% url 'dashboard:backtests' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="pull_data">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Instrument Symbol</label>
+                    <select name="symbol" required class="block w-full bg-slate-900 border border-slate-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="" disabled selected>-- Select Synced Instrument --</option>
+                        {% for inst in available_instruments %}
+                        <option value="{{ inst.symbol }}">{{ inst.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-md transition-colors border border-slate-600 mt-2">
+                    Fetch Synthetics History
+                </button>
+            </form>
+        </div>
+
+        <!-- Run Backtest Card -->
+        <div class="bg-indigo-900/30 rounded-lg p-6 border border-indigo-500/30">
+            <h2 class="text-xl font-bold text-indigo-300 mb-4">2. Initiate Backtest Engine</h2>
+            <p class="text-sm text-indigo-200/60 mb-6">Execute the loaded strategy engines over the downloaded payload.</p>
+            <form method="POST" action="{% url 'dashboard:backtests' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="run_backtest">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-indigo-300 mb-1">Symbol</label>
+                        <select name="symbol" required class="block w-full bg-slate-900 border border-indigo-700/50 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="" disabled selected>-- Target Pair --</option>
+                            {% for inst in available_instruments %}
+                            <option value="{{ inst.symbol }}">{{ inst.symbol }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-indigo-300 mb-1">Lookback (Days)</label>
+                        <input type="number" name="days" value="60" min="1" max="365" class="block w-full bg-slate-900 border border-indigo-700/50 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-4 rounded-md transition-colors shadow-lg shadow-indigo-500/20 mt-2">
+                    Execute Simulation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Backtest Results History -->
+    <div class="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden mt-8">
+        <div class="px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+            <h2 class="text-lg font-medium text-white">Simulation History</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-300">
+                <thead class="bg-slate-900/50 text-xs uppercase text-slate-400">
+                    <tr>
+                        <th class="px-6 py-3">Date Run</th>
+                        <th class="px-6 py-3">Instrument</th>
+                        <th class="px-6 py-3">PnL</th>
+                        <th class="px-6 py-3">Intelligence</th>
+                        <th class="px-6 py-3 text-right">Trades / Setups</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in backtests %}
+                    <tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors {% if result.status == 'COMPLETED' %}cursor-pointer{% endif %}"
+                        {% if result.status == 'COMPLETED' %}onclick="document.getElementById('chart-{{result.id}}').classList.toggle('hidden')"{% endif %}>
+                        <td class="px-6 py-4 font-mono text-xs">
+                            <div class="flex items-center gap-3">
+                                {% if result.status == 'RUNNING' %}
+                                    <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                {% elif result.status == 'FAILED' %}
+                                    <i class="fas fa-exclamation-triangle text-rose-500"></i>
+                                {% else %}
+                                    <i class="fas fa-check-circle text-emerald-500"></i>
+                                {% endif %}
+                                {{ result.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-white">{{ result.instrument.symbol }}</span>
+                                <span class="text-[10px] text-slate-500">{{ result.start_date|date:"M d" }} - {{ result.end_date|date:"M d" }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if result.status == 'RUNNING' %}
+                                <span class="text-blue-400 italic text-xs animate-pulse">Simulating...</span>
+                            {% elif result.status == 'FAILED' %}
+                                <span class="text-rose-400 font-bold">ERROR</span>
+                            {% else %}
+                                <span class="{% if result.total_pnl > 0 %}text-emerald-400{% elif result.total_pnl < 0 %}text-red-400{% endif %} font-bold">
+                                    ${{ result.total_pnl|floatformat:2|intcomma }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if result.status == 'COMPLETED' %}
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-slate-400">Win Rate:</span>
+                                        <span class="font-bold text-slate-200">{{ result.win_rate }}%</span>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        {% with metrics=result.metrics_json %}
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-500/20">ICT: {{ metrics.confluence_breakdown.ICT|default:0 }}</span>
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-900/30 text-indigo-300 border border-indigo-500/20">Q: {{ metrics.confluence_breakdown.Quant|default:0 }}</span>
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-900/30 text-purple-300 border border-purple-500/20">ML: {{ metrics.confluence_breakdown.ML|default:0 }}</span>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-slate-600">--</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            {% if result.status == 'COMPLETED' %}
+                                <div class="flex flex-col items-end">
+                                    <span class="font-bold text-white">{{ result.total_trades }}</span>
+                                    <span class="text-[10px] text-slate-500">of {{ result.total_setups }} setups</span>
+                                </div>
+                            {% else %}
+                                <span class="text-slate-600">--</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if result.status == 'FAILED' %}
+                    <tr class="bg-rose-900/10 border-b border-slate-700">
+                        <td colspan="5" class="px-6 py-3">
+                            <div class="flex items-start gap-3 text-rose-300 text-xs font-mono bg-rose-900/20 p-3 rounded-lg border border-rose-500/20">
+                                <i class="fas fa-bug mt-1"></i>
+                                <div>
+                                    <p class="font-bold mb-1">Execution Failure Detail:</p>
+                                    <p class="whitespace-pre-wrap opacity-80">{{ result.error_reason }}</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    <tr id="chart-{{result.id}}" class="hidden bg-slate-900 border-b border-slate-700">
+                        <td colspan="5" class="p-6 bg-slate-900/50">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2">
+                                    <div id="apex-{{result.id}}" class="w-full h-64"></div>
+                                </div>
+                                <div class="bg-slate-800/40 rounded-lg p-5 border border-slate-700/50 space-y-4">
+                                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-700 pb-2">Quantum Performance Data</h4>
+
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p class="text-[10px] text-slate-400">Max Drawdown</p>
+                                            <p class="text-lg font-mono text-rose-400 font-bold">{{ result.metrics_json.max_drawdown|default:"0.00" }}%</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] text-slate-400">Avg Trade</p>
+                                            <p class="text-lg font-mono text-slate-200 font-bold">${{ result.metrics_json.average_trade_pnl|floatformat:2|default:"0.00"|intcomma }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2">
+                                        <p class="text-[10px] text-slate-400 mb-2">Simulated Responses & Logic</p>
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between items-center text-xs">
+                                                <span class="text-slate-500">ICT Accuracy</span>
+                                                <span class="text-emerald-400 font-mono">Verified</span>
+                                            </div>
+                                            <div class="flex justify-between items-center text-xs">
+                                                <span class="text-slate-500">Quant Model</span>
+                                                <span class="text-blue-400 font-mono">Mean Reversion + Momentum</span>
+                                            </div>
+                                            <div class="flex justify-between items-center text-xs">
+                                                <span class="text-slate-500">ML Validation</span>
+                                                <span class="text-indigo-400 font-mono">XGBoost (Auto-Trained)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-amber-900/10 border border-amber-500/20 rounded p-3 text-[10px] text-amber-200/70 italic">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Matched {{ result.total_trades }} entries out of {{ result.total_setups }} potential signals across selected duration.
+                                    </div>
+
+                                    {% if result.metrics_json.rejection_reasons %}
+                                    <div class="pt-2">
+                                        <p class="text-[10px] text-slate-400 mb-2">Rejection Analysis</p>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div class="bg-slate-900/40 p-2 rounded border border-slate-700/50">
+                                                <p class="text-[9px] text-slate-500 uppercase">Low Volatility</p>
+                                                <p class="text-xs font-bold text-slate-300">{{ result.metrics_json.rejection_reasons.VOLATILITY|default:0 }}</p>
+                                            </div>
+                                            <div class="bg-slate-900/40 p-2 rounded border border-slate-700/50">
+                                                <p class="text-[9px] text-slate-500 uppercase">Weak Grade</p>
+                                                <p class="text-xs font-bold text-slate-300">{{ result.metrics_json.rejection_reasons.GRADE|default:0 }}</p>
+                                            </div>
+                                            <div class="bg-slate-900/40 p-2 rounded border border-slate-700/50">
+                                                <p class="text-[9px] text-slate-500 uppercase">Risk Filter</p>
+                                                <p class="text-xs font-bold text-slate-300">{{ result.metrics_json.rejection_reasons.RISK|default:0 }}</p>
+                                            </div>
+                                            <div class="bg-slate-900/40 p-2 rounded border border-slate-700/50">
+                                                <p class="text-[9px] text-slate-500 uppercase">ML Filter</p>
+                                                <p class="text-xs font-bold text-slate-300">{{ result.metrics_json.rejection_reasons.ML|default:0 }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if result.equity_curve %}
+                            <script>
+                                (function() {
+                                    const curveRaw = '{{ result.equity_curve|safe|default:"[]" }}';
+                                    let curveData = [];
+                                    try {
+                                        curveData = JSON.parse(curveRaw.replace(/'/g, '"'));
+                                    } catch (e) {
+                                        console.error("Failed to parse equity curve:", e);
+                                    }
+                                    if (!curveData || curveData.length === 0) return;
+
+                                    const options = {
+                                        series: [{
+                                            name: 'Equity',
+                                            data: curveData.map(d => ({ x: new Date(d.timestamp).getTime(), y: d.equity }))
+                                        }],
+                                        chart: { type: 'area', height: 250, toolbar: { show: false }, background: 'transparent' },
+                                        colors: ['#4f46e5'],
+                                        stroke: { curve: 'smooth', width: 2 },
+                                        dataLabels: { enabled: false },
+                                        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100] } },
+                                        xaxis: { type: 'datetime', labels: { style: { colors: '#94a3b8' } }, axisBorder: { show: false } },
+                                        yaxis: { labels: { style: { colors: '#94a3b8' }, formatter: (v) => v.toFixed(0) } },
+                                        grid: { borderColor: '#334155', strokeDashArray: 4 }
+                                    };
+                                    new ApexCharts(document.querySelector("#apex-{{result.id}}"), options).render();
+                                })();
+                            </script>
+                            {% else %}
+                            <p class="text-slate-500 italic text-center">No equity curve data stored for this run.</p>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-slate-500 italic">No backtests run yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const btn = this.querySelector('button[type="submit"]');
+            if(btn) {
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+                btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing Task...`;
+            }
+        });
+    });
+</script>
+>>>>>>> origin/main
 {% endblock %}

@@ -56,6 +56,7 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
 ]
 
 THIRD_PARTY_APPS = [
@@ -69,7 +70,6 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.core",
     "apps.accounts",
-    "apps.tenants",
     "apps.brokers",
     "apps.marketdata",
     "apps.oms",
@@ -92,8 +92,6 @@ MIDDLEWARE = [
     # Custom middleware
     "apps.core.middleware.RequestIDMiddleware",
     "apps.core.middleware.AuditLogMiddleware",
-    # Note: tenants app does not provide middleware; using API TenantMiddleware
-    "apps.api.middleware.TenantMiddleware",
     "apps.api.middleware.RateLimitMiddleware",
 ]
 
@@ -259,6 +257,14 @@ CELERY_BEAT_SCHEDULE = {
             "hour": 18,  # 6 PM EST (after market close)
             "minute": 0,
         },
+    },
+    "keep-brokers-alive": {
+        "task": "apps.strategies.tasks.keep_brokers_alive",
+        "schedule": 30.0,  # Every 30 seconds
+    },
+    "autonomous-scan": {
+        "task": "apps.strategies.tasks.scan_all_instruments",
+        "schedule": 300.0,  # Every 5 minutes
     },
 }
 

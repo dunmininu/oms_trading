@@ -27,7 +27,6 @@ def user_logged_in_handler(sender, request, user, **kwargs):
         # Log the login event
         if hasattr(request, "tenant"):
             AuditLog.objects.create(
-                tenant=request.tenant,
                 user=user,
                 action="LOGIN",
                 resource_type="User",
@@ -54,7 +53,6 @@ def user_logged_out_handler(sender, request, user, **kwargs):
     try:
         if user and hasattr(request, "tenant"):
             AuditLog.objects.create(
-                tenant=request.tenant,
                 user=user,
                 action="LOGOUT",
                 resource_type="User",

@@ -24,10 +24,15 @@ def order_post_save_handler(sender, instance, created, **kwargs):
         if created:
             # Log order creation
             AuditLog.objects.create(
+<<<<<<< HEAD
                 tenant_id=instance.tenant_id,
                 user=instance.user,
+                action='ORDER_CREATED',
+                resource_type='Order',
+=======
                 action="ORDER_CREATED",
                 resource_type="Order",
+>>>>>>> origin/main
                 resource_id=str(instance.id),
                 metadata={
                     "order_type": instance.order_type,
@@ -44,10 +49,15 @@ def order_post_save_handler(sender, instance, created, **kwargs):
         else:
             # Log order updates
             AuditLog.objects.create(
+<<<<<<< HEAD
                 tenant_id=instance.tenant_id,
                 user=instance.user,
+                action='ORDER_UPDATED',
+                resource_type='Order',
+=======
                 action="ORDER_UPDATED",
                 resource_type="Order",
+>>>>>>> origin/main
                 resource_id=str(instance.id),
                 metadata={
                     "old_state": getattr(instance, "_old_state", "UNKNOWN"),
@@ -107,10 +117,15 @@ def execution_post_save_handler(sender, instance, created, **kwargs):
         if created:
             # Log execution
             AuditLog.objects.create(
+<<<<<<< HEAD
                 tenant_id=instance.tenant_id,
                 user=instance.order.user,
+                action='EXECUTION_CREATED',
+                resource_type='Execution',
+=======
                 action="EXECUTION_CREATED",
                 resource_type="Execution",
+>>>>>>> origin/main
                 resource_id=str(instance.id),
                 metadata={
                     "execution_id": instance.execution_id,
@@ -161,11 +176,9 @@ def update_position_from_execution(execution):
             order = execution.order
             instrument = order.instrument
             broker_account = order.broker_account
-            tenant = order.tenant
 
             # Get or create position
             position, created = Position.objects.get_or_create(
-                tenant=tenant,
                 broker_account=broker_account,
                 instrument=instrument,
                 defaults={

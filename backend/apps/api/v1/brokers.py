@@ -79,7 +79,6 @@ class BrokerService(BaseService):
             resource_type="broker",
             resource_id=str(broker.id),
             user_id=user_id,
-            tenant_id=tenant_id,
         )
 
         return broker
@@ -101,7 +100,6 @@ class BrokerService(BaseService):
             resource_type="broker",
             resource_id=broker_id,
             user_id=user_id,
-            tenant_id=tenant_id,
         )
 
         return broker
@@ -121,7 +119,6 @@ class BrokerService(BaseService):
             resource_type="broker",
             resource_id=broker_id,
             user_id=user_id,
-            tenant_id=tenant_id,
         )
 
         return result
@@ -155,7 +152,6 @@ class BrokerAccountService(BaseService):
             resource_type="broker_account",
             resource_id=str(account.id),
             user_id=user_id,
-            tenant_id=tenant_id,
         )
 
         return account
@@ -179,7 +175,6 @@ def list_brokers(request: HttpRequest, filters: Query[BaseFilterSchema] = Query(
             }, 400
 
         result = broker_service.repository.list(
-            tenant_id=tenant_id,
             page=filters.page,
             page_size=filters.page_size,
             ordering=filters.ordering,
@@ -235,7 +230,6 @@ def create_broker(request: HttpRequest, data: BrokerCreateSchema):
 
         broker = broker_service.create_broker(
             data.dict(),
-            tenant_id=tenant_id,
             user_id=str(request.user.id) if request.user.is_authenticated else None,
         )
         return BrokerResponseSchema.from_orm(broker)
@@ -262,7 +256,6 @@ def update_broker(request: HttpRequest, broker_id: str, data: BrokerUpdateSchema
         broker = broker_service.update_broker(
             broker_id,
             data.dict(exclude_unset=True),
-            tenant_id=tenant_id,
             user_id=str(request.user.id) if request.user.is_authenticated else None,
         )
         return BrokerResponseSchema.from_orm(broker)
@@ -288,7 +281,6 @@ def delete_broker(request: HttpRequest, broker_id: str):
 
         broker_service.delete_broker(
             broker_id,
-            tenant_id=tenant_id,
             user_id=str(request.user.id) if request.user.is_authenticated else None,
         )
         return {"success": True, "message": "Broker deleted successfully"}
@@ -355,7 +347,6 @@ def create_broker_account(
 
         account = broker_account_service.create_broker_account(
             account_data,
-            tenant_id=tenant_id,
             user_id=str(request.user.id) if request.user.is_authenticated else None,
         )
         return BrokerAccountResponseSchema.from_orm(account)

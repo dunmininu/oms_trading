@@ -20,9 +20,15 @@
                 <i class="fas fa-stop mr-2"></i> STOP ALL
             </button>
         </form>
+<<<<<<< HEAD
         <button class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-300 transition-colors">
             <i class="fas fa-plus mr-2"></i> NEW STRATEGY
         </button>
+=======
+        <a href="/admin/strategies/strategy/add/" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-300 transition-colors inline-block">
+            <i class="fas fa-plus mr-2"></i> NEW STRATEGY
+        </a>
+>>>>>>> origin/main
     </div>
 </div>
 
@@ -37,7 +43,11 @@
                 </div>
                 <span class="h-2 w-2 rounded-full {% if strategy.is_active %}bg-emerald-500 animate-pulse{% else %}bg-slate-300{% endif %}"></span>
             </div>
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> origin/main
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div>
                     <p class="text-[10px] text-slate-400 font-bold uppercase">Total PnL</p>
@@ -65,8 +75,61 @@
     </div>
     {% empty %}
     <div class="col-span-full py-20 text-center bg-white rounded-2xl border-2 border-dashed border-slate-200">
+<<<<<<< HEAD
         <p class="text-slate-400 italic">No strategies deployed in this tenant.</p>
     </div>
     {% endfor %}
 </div>
+=======
+        <p class="text-slate-400 italic">No strategies deployed in the system.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Signal History Feed -->
+<div class="mt-12">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-slate-800">Intelligence Signal Feed</h2>
+        <span class="text-xs text-slate-400 font-bold uppercase tracking-widest">Scanner Active <i class="fas fa-broadcast-tower ml-2 text-emerald-500 animate-pulse"></i></span>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold">
+                    <tr>
+                        <th class="px-6 py-3">Time</th>
+                        <th class="px-6 py-3">Instrument</th>
+                        <th class="px-6 py-3">Setup</th>
+                        <th class="px-6 py-3">Grade</th>
+                        <th class="px-6 py-3">Context</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 text-sm">
+                    {% for signal in recent_signals %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-slate-500 text-xs">{{ signal.created_at|date:"H:i:s" }}</td>
+                        <td class="px-6 py-4 font-bold text-slate-900">{{ signal.instrument.symbol }}</td>
+                        <td class="px-6 py-4">
+                            <span class="text-[10px] font-bold uppercase py-1 px-2 rounded bg-indigo-50 text-indigo-700">
+                                {{ signal.setup_type }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold {% if signal.grade == 'A+' %}text-emerald-600{% elif signal.grade == 'B' %}text-sky-600{% else %}text-slate-600{% endif %}">
+                                {{ signal.grade }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-600 text-xs">{{ signal.message }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center text-slate-400 italic">No signals detected by the scanner yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+>>>>>>> origin/main
 {% endblock %}

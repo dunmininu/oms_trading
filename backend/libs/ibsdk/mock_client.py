@@ -6,6 +6,14 @@ import asyncio
 import logging
 import random
 import uuid
+<<<<<<< HEAD
+from typing import Optional, List, Any
+import eventkit as ek
+from ib_insync import Contract, Order, Ticker, Fill, Execution as IBExecution, CommissionReport
+
+logger = logging.getLogger(__name__)
+
+=======
 
 import eventkit as ek
 from ib_insync import (
@@ -21,15 +29,32 @@ from ib_insync import (
 logger = logging.getLogger(__name__)
 
 
+>>>>>>> origin/main
 class MockTrade:
     def __init__(self, contract, order):
         self.contract = contract
         self.order = order
+<<<<<<< HEAD
+        self.orderStatus = type('Status', (), {'status': 'Submitted'})()
+=======
         self.orderStatus = type("Status", (), {"status": "Submitted"})()
+>>>>>>> origin/main
         self.fills = []
         self.statusEvent = ek.Event()
         self.fillEvent = ek.Event()
 
+<<<<<<< HEAD
+class MockIB:
+    def __init__(self):
+        self.connected = False
+
+    def isConnected(self):
+        return self.connected
+
+    def connect(self, *args, **kwargs):
+        self.connected = True
+
+=======
 
 class MockIB:
     def __init__(self):
@@ -41,24 +66,38 @@ class MockIB:
     def connect(self, *args, **kwargs):
         self.connected = True
 
+>>>>>>> origin/main
     def disconnect(self):
         self.connected = False
 
     def managedAccounts(self):
+<<<<<<< HEAD
+        return ['MOCK12345']
+=======
         return ["MOCK12345"]
 
+>>>>>>> origin/main
 
 class MockIBClient:
     """
     Mock IB client that simulates connectivity and order execution.
     """
+<<<<<<< HEAD
+
+    def __init__(self, host: str = '127.0.0.1', port: int = 7497, client_id: int = 1):
+=======
 
     def __init__(self, host: str = "127.0.0.1", port: int = 7497, client_id: int = 1):
+>>>>>>> origin/main
         self.host = host
         self.port = port
         self.client_id = client_id
         self.ib = MockIB()
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> origin/main
         # Events
         self.connected_event = ek.Event()
         self.disconnected_event = ek.Event()
@@ -86,6 +125,16 @@ class MockIBClient:
         return [contract]
 
     def place_order(self, contract: Contract, order: Order):
+<<<<<<< HEAD
+        print(f"MOCK: Placing order {order.action} {order.totalQuantity} {contract.symbol}")
+
+        order.orderId = random.randint(10000, 99999)
+        trade = MockTrade(contract, order)
+
+        # Simulate fill in background
+        asyncio.create_task(self._simulate_fill(trade))
+
+=======
         print(
             f"MOCK: Placing order {order.action} {order.totalQuantity} {contract.symbol}"
         )
@@ -96,20 +145,36 @@ class MockIBClient:
         # Simulate fill in background
         asyncio.create_task(self._simulate_fill(trade))
 
+>>>>>>> origin/main
         return trade
 
     async def _simulate_fill(self, trade):
         try:
             await asyncio.sleep(0.5)
             print(f"MOCK: Simulating fill for {trade.contract.symbol}")
+<<<<<<< HEAD
+
+            trade.orderStatus.status = 'Filled'
+
+=======
 
             trade.orderStatus.status = "Filled"
 
+>>>>>>> origin/main
             fill = Fill(
                 contract=trade.contract,
                 execution=IBExecution(
                     execId=f"exec-{uuid.uuid4().hex[:8]}",
                     shares=trade.order.totalQuantity,
+<<<<<<< HEAD
+                    price=50000.0 if trade.contract.symbol == 'BTC' else 180.0,
+                    avgPrice=50000.0 if trade.contract.symbol == 'BTC' else 180.0
+                ),
+                commissionReport=CommissionReport(commission=1.0),
+                time=None
+            )
+
+=======
                     price=50000.0 if trade.contract.symbol == "BTC" else 180.0,
                     avgPrice=50000.0 if trade.contract.symbol == "BTC" else 180.0,
                 ),
@@ -117,6 +182,7 @@ class MockIBClient:
                 time=None,
             )
 
+>>>>>>> origin/main
             trade.fills.append(fill)
             print("MOCK: Emitting fill events")
             trade.fillEvent.emit(trade, fill)
@@ -130,6 +196,26 @@ class MockIBClient:
     def cancel_order(self, order: Order):
         pass
 
+<<<<<<< HEAD
+    async def req_historical_data(self, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH):
+        from ib_insync import BarData
+        from datetime import datetime, timedelta
+        bars = []
+        now = datetime.now()
+        base_price = 50000.0 if contract.symbol == 'BTC' else 180.0
+        for i in range(100):
+            bars.append(BarData(
+                date=now - timedelta(minutes=15 * (100-i)),
+                open=base_price + random.uniform(-10, 10),
+                high=base_price + random.uniform(10, 20),
+                low=base_price + random.uniform(-20, -10),
+                close=base_price + random.uniform(-5, 5),
+                volume=100, average=base_price, barCount=10
+            ))
+        return bars
+
+    def req_mkt_data(self, contract, genericTickList='', snapshot=False, regulatorySnapshot=False):
+=======
     async def req_historical_data(
         self, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH
     ):
@@ -158,4 +244,5 @@ class MockIBClient:
     def req_mkt_data(
         self, contract, genericTickList="", snapshot=False, regulatorySnapshot=False
     ):
+>>>>>>> origin/main
         return None

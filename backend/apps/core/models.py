@@ -28,26 +28,6 @@ class BaseModel(models.Model):
         return f"{self.__class__.__name__}({self.id})"
 
 
-class TenantAwareModel(BaseModel):
-    """Base model for tenant-scoped models."""
-
-    tenant = models.ForeignKey(
-        "tenants.Tenant",
-        on_delete=models.CASCADE,
-        related_name="%(class)s_set",
-        db_index=True,
-        null=True,  # Allow null for core models
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-        indexes = [
-            models.Index(fields=["tenant", "created_at"]),
-            models.Index(fields=["tenant", "is_active"]),
-        ]
-
-
 class UserManager(BaseUserManager):
     """Custom manager for User model."""
 
@@ -71,6 +51,32 @@ class UserManager(BaseUserManager):
             raise ValueError(_("Superuser must have is_staff=True."))
         if extra_fields.get("is_superuser") is not True:
             raise ValueError(_("Superuser must have is_superuser=True."))
+
+        return self.create_user(email, password, **extra_fields)
+
+class UserManager(BaseUserManager):
+    """Custom manager for User model."""
+
+    def create_user(self, email, password=None, **extra_fields):
+        """Create and save a regular user with the given email and password."""
+        if not email:
+            raise ValueError(_('The Email field must be set'))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Create and save a superuser with the given email and password."""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Superuser must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Superuser must have is_superuser=True.'))
 
         return self.create_user(email, password, **extra_fields)
 
@@ -118,12 +124,21 @@ class User(AbstractUser, BaseModel):
     # Last activity tracking
     last_activity = models.DateTimeField(null=True, blank=True)
     last_ip_address = models.GenericIPAddressField(null=True, blank=True)
+<<<<<<< HEAD
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+
+=======
 
     objects = UserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
+>>>>>>> origin/main
     class Meta:
         db_table = "core_user"
         verbose_name = _("user")
@@ -198,8 +213,6 @@ class AuditLog(BaseModel):
         ("BROKER_DISCONNECT", "Broker Disconnect"),
     ]
 
-    # Tenant is optional for system-level audit logs
-    tenant_id = models.UUIDField(null=True, blank=True, db_index=True)
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -223,9 +236,6 @@ class AuditLog(BaseModel):
         verbose_name = _("audit log")
         verbose_name_plural = _("audit logs")
         indexes = [
-            models.Index(fields=["tenant_id", "action"]),
-            models.Index(fields=["tenant_id", "resource_type"]),
-            models.Index(fields=["tenant_id", "created_at"]),
             models.Index(fields=["user", "created_at"]),
             models.Index(fields=["action", "created_at"]),
         ]

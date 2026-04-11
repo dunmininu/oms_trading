@@ -62,8 +62,8 @@ class RateLimitMiddleware:
 
     def __call__(self, request: HttpRequest):
         """Process request and apply rate limiting."""
-        # Skip rate limiting for health checks
-        if request.path in ["/health", "/"]:
+        # Skip rate limiting for health checks and high-frequency telemetry
+        if request.path in ["/health", "/", "/dashboard/telemetry/"]:
             return self.get_response(request) if self.get_response else None
 
         # Get client identifier

@@ -75,7 +75,7 @@ CSRF_COOKIE_SECURE = False
 CACHES["default"]["LOCATION"] = env("REDIS_URL", default="redis://localhost:6379/0")  # noqa: F405
 
 # Celery settings for development
-CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/1")  # noqa: F405
 CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://localhost:6379/1")  # noqa: F405

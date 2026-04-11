@@ -1,0 +1,207 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Trade Management - Sanusi OMS{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800">Trade Management</h1>
+        <p class="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Autonomous Fleet Oversight & Manual intervention</p>
+    </div>
+
+    <div class="flex space-x-3">
+        <form method="POST" action="{% url 'dashboard:settings' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="kill_switch">
+            <button type="submit" class="bg-rose-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all flex items-center">
+                <i class="fas fa-skull-crossbones mr-2"></i> GLOBAL KILL SWITCH
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Active Positions Section -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+        <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-briefcase text-indigo-500 mr-2"></i> Active Positions
+        </h3>
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white px-2 py-1 rounded border border-slate-100">Live Inventory</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold border-b border-slate-100">
+                <tr>
+                    <th class="px-6 py-4">Instrument</th>
+                    <th class="px-6 py-4">Side</th>
+                    <th class="px-6 py-4">Quantity</th>
+                    <th class="px-6 py-4">Avg Cost</th>
+                    <th class="px-6 py-4">Market Price</th>
+                    <th class="px-6 py-4 text-right">Unrealized P&L</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-sm">
+                {% for pos in active_positions %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-900">{{ pos.instrument.symbol }}</span>
+                            <span class="text-[10px] text-slate-400">{{ pos.instrument.name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                            {% if pos.quantity > 0 %}bg-emerald-50 text-emerald-700{% else %}bg-rose-50 text-rose-700{% endif %}">
+                            {% if pos.quantity > 0 %}LONG{% else %}SHORT{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-mono font-medium text-slate-700">{{ pos.quantity|floatformat:4 }}</td>
+                    <td class="px-6 py-4 font-mono text-slate-500">${{ pos.average_cost|floatformat:2|default:"0.00" }}</td>
+                    <td class="px-6 py-4 font-mono text-slate-500">${{ pos.market_price|floatformat:2|default:"--" }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="font-mono font-bold {% if pos.unrealized_pnl >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {% if pos.unrealized_pnl >= 0 %}+{% endif %}${{ pos.unrealized_pnl|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="close_position">
+                            <input type="hidden" name="position_id" value="{{ pos.id }}">
+                            <button type="submit" class="text-[10px] font-bold text-rose-600 hover:text-white hover:bg-rose-500 border border-rose-100 px-2 py-1 rounded transition-all uppercase tracking-widest">
+                                Close Flat
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                                <i class="fas fa-inbox text-slate-300"></i>
+                            </div>
+                            <p class="text-slate-400 text-sm italic">No active positions currently held.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Order History Section -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+        <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-history text-slate-400 mr-2"></i> Recent Order Logs
+        </h3>
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white px-2 py-1 rounded border border-slate-100">Audit Trail</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase font-bold border-b border-slate-100">
+                <tr>
+                    <th class="px-6 py-4">Time</th>
+                    <th class="px-6 py-4">Order ID</th>
+                    <th class="px-6 py-4">Instrument</th>
+                    <th class="px-6 py-4">Type</th>
+                    <th class="px-6 py-4">Side</th>
+                    <th class="px-6 py-4">Quantity</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-sm">
+                {% for order in recent_orders %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 text-slate-500 text-xs">
+                        {{ order.created_at|date:"M d, H:i:s" }}
+                    </td>
+                    <td class="px-6 py-4 font-mono text-[11px] text-slate-600">
+                        {{ order.client_order_id }}
+                    </td>
+                    <td class="px-6 py-4 font-bold text-slate-900">{{ order.instrument.symbol }}</td>
+                    <td class="px-6 py-4 text-slate-500 text-xs uppercase">{{ order.order_type }}</td>
+                    <td class="px-6 py-4">
+                        <span class="font-bold {% if order.side == 'BUY' %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {{ order.side }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-slate-600">{{ order.quantity|floatformat:4 }}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                            {% if order.state == 'FILLED' %}bg-emerald-50 text-emerald-700
+                            {% elif order.state == 'CANCELLED' %}bg-slate-100 text-slate-600
+                            {% elif order.state == 'REJECTED' or order.state == 'RISK_REJECTED' %}bg-rose-50 text-rose-700
+                            {% elif order.state == 'NEW' or order.state == 'SUBMITTED' %}bg-amber-50 text-amber-700 animate-pulse
+                            {% else %}bg-indigo-50 text-indigo-700{% endif %}">
+                            {{ order.state }}
+                        </span>
+                        {% if order.reject_reason %}
+                        <p class="text-[9px] text-rose-400 mt-1 max-w-[150px] truncate" title="{{ order.reject_reason }}">{{ order.reject_reason }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if order.is_active %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="cancel_order">
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            <button type="submit" class="text-rose-600 hover:text-rose-800 p-1">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="text-slate-200"><i class="fas fa-check-double"></i></span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">No orders found in recent history.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // High-frequency 2s polling per Tech Lead requirement
+    async function updateTelemetry() {
+        try {
+            const response = await fetch('/dashboard/telemetry/');
+            if (!response.ok) return;
+            const data = await response.json();
+
+            // Minimalist update for Order Audit Trail
+            const orderBody = document.querySelector('tbody:last-of-type');
+            if (data.orders && data.orders.length > 0) {
+                let html = '';
+                data.orders.forEach(order => {
+                    const sideClass = order.side === 'BUY' ? 'text-emerald-600' : 'text-rose-600';
+                    const stateClass = order.state === 'FILLED' ? 'bg-emerald-50 text-emerald-700' :
+                                     (order.state === 'CANCELLED' ? 'bg-slate-100 text-slate-600' : 'bg-rose-50 text-rose-700');
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 text-slate-500 text-xs">${order.time}</td>
+                            <td class="px-6 py-4 font-mono text-[11px] text-slate-600">${order.id.substring(0,8)}</td>
+                            <td class="px-6 py-4 font-bold text-slate-900">${order.symbol}</td>
+                            <td class="px-6 py-4 text-slate-500 text-xs uppercase">MARKET</td>
+                            <td class="px-6 py-4"><span class="font-bold ${sideClass}">${order.side}</span></td>
+                            <td class="px-6 py-4 font-mono text-slate-600">${parseFloat(order.quantity).toFixed(2)}</td>
+                            <td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${stateClass}">${order.state}</span></td>
+                            <td class="px-6 py-4 text-right"><span class="text-slate-200"><i class="fas fa-check-double"></i></span></td>
+                        </tr>
+                    `;
+                });
+                orderBody.innerHTML = html;
+            }
+        } catch (e) { /* silent fail for telemetry */ }
+    }
+    setInterval(updateTelemetry, 2000);
+</script>
+{% endblock %}

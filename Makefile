@@ -65,7 +65,7 @@ setup-env: ## Copy .env.example to .env if not exists
 # Development Commands
 dev: setup-env ## Start development server
 	@echo "$(GREEN)Starting development server...$(NC)"
-	$(MANAGE) runserver 0.0.0.0:8010
+	$(MANAGE) runserver localhost:8010
 
 dev-worker: ## Start Celery worker in development
 	@echo "$(GREEN)Starting Celery worker...$(NC)"
